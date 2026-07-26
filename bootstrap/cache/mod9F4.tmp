@@ -1,0 +1,27 @@
+<?php return array (
+  'providers' => 
+  array (
+    0 => 'Modules\\Announcement\\app\\Providers\\AnnouncementServiceProvider',
+    1 => 'Modules\\Community\\app\\Providers\\CommunityServiceProvider',
+    2 => 'Modules\\Issue\\app\\Providers\\IssueServiceProvider',
+    3 => 'Modules\\Messaging\\app\\Providers\\MessagingServiceProvider',
+    4 => 'Modules\\Notification\\app\\Providers\\NotificationServiceProvider',
+    5 => 'Modules\\Poll\\app\\Providers\\PollServiceProvider',
+    6 => 'Modules\\Post\\app\\Providers\\PostServiceProvider',
+    7 => 'Modules\\ServiceListing\\app\\Providers\\ServiceListingServiceProvider',
+  ),
+  'eager' => 
+  array (
+    0 => 'Modules\\Announcement\\app\\Providers\\AnnouncementServiceProvider',
+    1 => 'Modules\\Community\\app\\Providers\\CommunityServiceProvider',
+    2 => 'Modules\\Issue\\app\\Providers\\IssueServiceProvider',
+    3 => 'Modules\\Messaging\\app\\Providers\\MessagingServiceProvider',
+    4 => 'Modules\\Notification\\app\\Providers\\NotificationServiceProvider',
+    5 => 'Modules\\Poll\\app\\Providers\\PollServiceProvider',
+    6 => 'Modules\\Post\\app\\Providers\\PostServiceProvider',
+    7 => 'Modules\\ServiceListing\\app\\Providers\\ServiceListingServiceProvider',
+  ),
+  'deferred' => 
+  array (
+  ),
+);

@@ -1,0 +1,14 @@
+{
+    "Auth": true,
+    "Community": true,
+    "Post": true,
+    "Issue": true,
+    "Poll": true,
+    "ServiceListing": true,
+    "Messaging": true,
+    "Notification": true,
+    "Announcement": true,
+    "Issur": true,
+    "Media": true,
+    "Interaction": true
+}

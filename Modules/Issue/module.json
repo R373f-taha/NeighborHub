@@ -1,0 +1,11 @@
+{
+    "name": "Issue",
+    "alias": "issue",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Issue\\app\\Providers\\IssueServiceProvider"
+    ],
+    "files": []
+}
