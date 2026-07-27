@@ -1,18 +1,18 @@
 <?php
 
-namespace Modules\ServiceListing\Models;
-
+namespace Modules\ServiceListing\app\Models;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Community\Models\Community;
-use Modules\Community\Models\Resident;
-use Modules\Interaction\Models\Comment;
-use Modules\Interaction\Models\Reaction;
-use Modules\Media\Models\Media;
+use Modules\Community\app\Models\Community;
+use Modules\Community\app\Models\Resident;
+use Modules\Interaction\app\Models\Comment;
+use Modules\Interaction\app\Models\Reaction;
+use Modules\Media\app\Models\Media;
 
 class ServiceListing extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasFactory;
 
     protected $fillable = [
         'community_id', 'resident_id', 'title', 'description', 'type',
@@ -25,10 +25,12 @@ class ServiceListing extends Model
         'closed_at' => 'datetime',
     ];
 
+
     public function community()
     {
         return $this->belongsTo(Community::class);
     }
+
 
     public function author()
     {
@@ -49,5 +51,10 @@ class ServiceListing extends Model
     public function media()
     {
         return $this->morphMany(Media::class, 'mediable');
+    }
+
+      protected static function newFactory()
+    {
+        return \Modules\ServiceListing\Database\Factories\ServiceListingFactory::new();
     }
 }

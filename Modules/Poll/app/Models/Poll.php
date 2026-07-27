@@ -2,12 +2,14 @@
 
 namespace Modules\Poll\app\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Auth\Models\User;
-use Modules\Community\Models\Community;
+use Modules\Auth\app\Models\User;
+use Modules\Community\app\Models\Community;
+use Modules\Poll\Database\Factories\PollFactory;
 
 class Poll extends Model
-{
+{ use HasFactory;
     protected $fillable = [
         'community_id', 'created_by', 'title', 'description', 'type',
         'status', 'ends_at', 'activated_at', 'closed_at', 'closed_by_manager'
@@ -19,6 +21,10 @@ class Poll extends Model
         'closed_at' => 'datetime',
     ];
 
+    protected static function newFactory()
+    {
+        return PollFactory::new();
+    }
     public function community()
     {
         return $this->belongsTo(Community::class);
