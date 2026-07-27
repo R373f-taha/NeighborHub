@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Poll\Http\Controllers;
+namespace Modules\Poll\app\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;

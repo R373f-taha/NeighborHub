@@ -7,8 +7,6 @@
     "ServiceListing": true,
     "Messaging": true,
     "Notification": true,
-    "Announcement": true,
-    "Issur": true,
     "Media": true,
     "Interaction": true
 }
