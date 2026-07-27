@@ -1,22 +1,35 @@
 <?php
 
-namespace Modules\Poll\Models;
+namespace Modules\Poll\app\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Modules\Community\Models\Resident;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Modules\Community\app\Models\Resident;
+use Modules\Poll\Database\Factories\PollVoteFactory;
 
 class PollVote extends Model
 {
-    // بما أن الميغريشن ما فيها timestamps، نضيفها يدوياً أو نستخدم $timestamps = true
-    // لكن الأفضل إضافة timestamps في الميغريشن. حالياً خليناها true عشان نضمن التوافق.
-    public $timestamps = true;
+    use HasFactory;
 
-    protected $fillable = ['poll_id', 'option_id', 'voter_id', 'submitted_at', 'voted_at'];
+    public $timestamps = false;
+
+    protected $fillable = [
+        'poll_id',
+        'option_id',
+        'voter_id',
+        'submitted_at',
+        'voted_at',
+    ];
 
     protected $casts = [
         'submitted_at' => 'datetime',
-        'voted_at' => 'date',
+        'voted_at' => 'datetime',
     ];
+
+    protected static function newFactory()
+    {
+        return PollVoteFactory::new();
+    }
 
     public function poll()
     {

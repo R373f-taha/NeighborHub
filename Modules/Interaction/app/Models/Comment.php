@@ -4,15 +4,25 @@ namespace Modules\Interaction\app\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Auth\Models\User;
+use Modules\Auth\app\Models\User;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Modules\Interaction\Database\Factories\CommentFactory;
+
 
 class Comment extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasFactory;
 
     protected $fillable = ['commentable_type', 'commentable_id', 'author_id', 'parent_id', 'content'];
 
+  protected static function newFactory()
+    {
+        return CommentFactory::new();
+    }
+
+
     // ========== العلاقات ==========
+
 
     public function commentable()
     {

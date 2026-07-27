@@ -7,17 +7,19 @@ use Modules\Auth\app\Models\User;
 
 class CommunityManager extends Model
 {
-    protected $table = 'community_managers';
+    protected $table = 'community_mangers';
 
-    protected $fillable = ['community_id', 'manager_id'];
+    protected $fillable = [  'community_id',  'manager_id' ];
+
 
     public function community()
     {
         return $this->belongsTo(Community::class);
     }
 
+
     public function manager()
     {
-        return $this->belongsTo(User::class, 'manager_id');
+        return $this->belongsTo(User::class,'manager_id');
     }
 }

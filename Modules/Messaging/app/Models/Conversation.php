@@ -1,14 +1,23 @@
 <?php
 
-namespace Modules\Messaging\Models;
+namespace Modules\Messaging\app\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Modules\Auth\Models\User;
-use Modules\Community\Models\Community;
+use Modules\Auth\app\Models\User;
+use Modules\Community\app\Models\Community;
+use Modules\Messaging\Database\Factories\ConversationFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Conversation extends Model
-{
+{  use HasFactory;
     protected $fillable = ['community_id', 'type', 'status'];
+
+
+    protected static function newFactory()
+    {
+        return ConversationFactory::new();
+    }
+
 
     public function community()
     {

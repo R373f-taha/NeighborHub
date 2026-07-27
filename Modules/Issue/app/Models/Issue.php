@@ -3,20 +3,26 @@
 namespace Modules\Issue\app\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Modules\Auth\Models\User;
-use Modules\Community\Models\Community;
-use Modules\Interaction\Models\Comment;
-use Modules\Interaction\Models\Reaction;
-use Modules\Media\Models\Media;
+use Modules\Auth\app\Models\User;
+use Modules\Community\app\Models\Community;
+use Modules\Interaction\app\Models\Comment;
+use Modules\Interaction\app\Models\Reaction;
+use Modules\Media\app\Models\Media;
+use Modules\Issue\Database\Factories\IssueFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Issue extends Model
-{
+{ use HasFactory;
     protected $fillable = [
         'community_id', 'title', 'description', 'category', 'location',
         'priority', 'status', 'reported_by', 'assigned_to'
     ];
 
 
+    protected static function newFactory()
+    {
+        return IssueFactory::new();
+    }
     public function community()
     {
         return $this->belongsTo(Community::class);
@@ -34,7 +40,8 @@ class Issue extends Model
 
     public function statusLogs()
     {
-        return $this->hasOne(IssueStatusLog::class);
+        return $this->hasMany
+        (IssueStatusLog::class);
     }
 
     public function comments()

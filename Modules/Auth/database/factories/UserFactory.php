@@ -14,11 +14,6 @@ use Modules\Auth\app\Models\User;
 class UserFactory extends Factory
 {
     /**
-     * The name of the factory's corresponding model.
-     *
-     * Set explicitly because Laravel's default guess resolves to the App
-     * namespace, which is not used by this module.
-     *
      * @var class-string<User>
      */
     protected $model = User::class;
@@ -31,18 +26,60 @@ class UserFactory extends Factory
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
-            // Stored as plaintext here; the User model's "hashed" cast hashes
-            // it on assignment so it is never double-hashed.
+
+            // سيتم تشفيرها تلقائياً بواسطة cast في الـ Model
             'password' => 'password',
-            'role' => UserRole::Resident,
-            'is_active' => true,
+
+            'role' => fake()->randomElement(UserRole::cases()),
+
+            'phone' => fake()->phoneNumber(),
+
+            'avatar' => fake()->imageUrl(300, 300, 'people'),
+
+            'is_active' => fake()->boolean(90),
+
             'email_verified_at' => now(),
         ];
     }
 
+    public function superAdmin(): static
+    {
+        return $this->state(fn () => [
+            'role' => UserRole::SuperAdmin,
+        ]);
+    }
+
+    public function manager(): static
+    {
+        return $this->state(fn () => [
+            'role' => UserRole::Manager,
+        ]);
+    }
+
+    public function resident(): static
+    {
+        return $this->state(fn () => [
+            'role' => UserRole::Resident,
+        ]);
+    }
+
+    public function provider(): static
+    {
+        return $this->state(fn () => [
+            'role' => UserRole::Provider,
+        ]);
+    }
+
+    public function inactive(): static
+    {
+        return $this->state(fn () => [
+            'is_active' => false,
+        ]);
+    }
+
     public function unverified(): static
     {
-        return $this->state(fn (array $attributes): array => [
+        return $this->state(fn () => [
             'email_verified_at' => null,
         ]);
     }

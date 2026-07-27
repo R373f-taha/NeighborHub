@@ -3,18 +3,26 @@
 namespace Modules\Community\app\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Modules\Auth\app\Models\User as ModelsUser;
-use Modules\Auth\Models\User;
-use Modules\Community\Models\Unit;
-use Modules\Poll\Models\PollVote;
-use Modules\Post\Models\Post;
-use Modules\ServiceListing\Models\ServiceListing;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+use Modules\Auth\app\Models\User;
+use Modules\Post\app\Models\Post;
+use Modules\Poll\app\Models\PollVote;
+use Modules\ServiceListing\app\Models\ServiceListing;
 
 class Resident extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
-        'user_id', 'unit_id', 'residence_type', 'status',
-        'joined_at', 'left_at', 'current_marker', 'approved_by'
+        'user_id',
+        'unit_id',
+        'residence_type',
+        'status',
+        'joined_at',
+        'left_at',
+        'current_marker',
+        'approved_by'
     ];
 
     protected $casts = [
@@ -24,30 +32,41 @@ class Resident extends Model
     ];
 
 
+    protected static function newFactory()
+    {
+        return \Modules\Community\Database\Factories\ResidentFactory::new();
+    }
+
+
     public function user()
     {
-        return $this->belongsTo(ModelsUser::class);
+        return $this->belongsTo(User::class);
     }
+
 
     public function unit()
     {
         return $this->belongsTo(Unit::class);
     }
 
+
     public function approvedBy()
     {
-        return $this->belongsTo(ModelsUser::class, 'approved_by');
+        return $this->belongsTo(User::class, 'approved_by');
     }
+
 
     public function posts()
     {
         return $this->hasMany(Post::class, 'resident_id');
     }
 
+
     public function serviceListings()
     {
         return $this->hasMany(ServiceListing::class, 'resident_id');
     }
+
 
     public function pollVotes()
     {
