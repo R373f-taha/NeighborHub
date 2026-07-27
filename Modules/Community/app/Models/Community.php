@@ -3,9 +3,7 @@
 namespace Modules\Community\app\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Modules\Announcement\app\Models\Announcement as AppModelsAnnouncement;
-use Modules\Announcement\Models\Announcement;
-use Modules\Community\Models\Announcement as ModelsAnnouncement;
+use Modules\Community\app\Models\Announcement as AppModelsAnnouncement;
 use Modules\Community\Models\Resident;
 use Modules\Community\Models\Unit;
 use Modules\Interaction\Models\Comment;

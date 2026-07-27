@@ -1,8 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Auth\Http\Controllers\AuthController;
 
-Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
-    Route::apiResource('auths', AuthController::class)->names('auth');
-});
+// Authentication API routes (register, login, logout, me, change password,
+// forgot password, reset password) will be added in the next task.
+// No routes are registered in this foundation-remediation task.

@@ -2,9 +2,8 @@
 
 namespace Modules\Community\app\Models;
 
-use App\Models\User as ModelsUser;
 use Illuminate\Database\Eloquent\Model;
-use Modules\Auth\Models\User;
+use Modules\Auth\app\Models\User;
 
 class CommunityManager extends Model
 {
@@ -19,6 +18,6 @@ class CommunityManager extends Model
 
     public function manager()
     {
-        return $this->belongsTo(ModelsUser::class, 'manager_id');
+        return $this->belongsTo(User::class, 'manager_id');
     }
 }

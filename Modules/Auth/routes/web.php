@@ -1,8 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Modules\Auth\Http\Controllers\AuthController;
 
-Route::middleware(['auth', 'verified'])->group(function () {
-    Route::resource('auths', AuthController::class)->names('auth');
-});
+// No web Authentication routes are registered in this foundation-remediation
+// task. Authentication web routes (if any) will be added in the next task.

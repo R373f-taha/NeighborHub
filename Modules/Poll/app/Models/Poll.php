@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Poll\Models;
+namespace Modules\Poll\app\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Modules\Auth\Models\User;
