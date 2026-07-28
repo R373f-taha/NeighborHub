@@ -1,0 +1,3600 @@
+{
+    "info": {
+        "_postman_id": "f0a1b2c3-d4e5-6789-0abc-def123456789",
+        "name": "NeighborHub Authentication API",
+        "description": "Complete Postman collection for the NeighborHub Authentication API.\n\nCovers all 7 endpoints with success, validation failure, authentication failure, and rate-limit scenarios.\n\n## Setup\n\n1. Import this collection and the `NeighborHub.local.postman_environment.json` environment.\n2. Select the **NeighborHub Local** environment.\n3. Start the Laravel development server: `php artisan serve`\n4. Run the **00 - Setup** folder first to generate unique test data.\n5. Run folders in order for sequential flows.\n\n## Environment Variables\n\n- `base_url`: API base (default: `http://127.0.0.1:8000/api/v1`)\n- `access_token` / `second_access_token`: Populated by successful register/login\n- `test_email` / `test_password`: Generated at runtime\n- `reset_token`: Must be manually set from your local mail channel after running forgot-password\n- `inactive_user_email` / `inactive_user_password`: Requires a locally prepared inactive-user fixture\n\n## Password Policy\n\nMinimum 15 characters, maximum 64 characters, confirmation required.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    "// Collection-level pre-request: generate unique test data if not already set.",
+                    "(function () {",
+                    "    var ts = Date.now();",
+                    "    var rand = Math.random().toString(36).substring(2, 8);",
+                    "",
+                    "    if (!pm.environment.get('test_email')) {",
+                    "        pm.environment.set('test_email', 'postman.' + ts + '.' + rand + '@example.test');",
+                    "    }",
+                    "    if (!pm.environment.get('nonexistent_email')) {",
+                    "        pm.environment.set('nonexistent_email', 'ghost.' + ts + '.' + rand + '@example.test');",
+                    "    }",
+                    "    if (!pm.environment.get('rate_limit_email')) {",
+                    "        pm.environment.set('rate_limit_email', 'ratelimit.' + ts + '.' + rand + '@example.test');",
+                    "    }",
+                    "    if (!pm.environment.get('reset_email')) {",
+                    "        pm.environment.set('reset_email', 'reset.' + ts + '.' + rand + '@example.test');",
+                    "    }",
+                    "    if (!pm.environment.get('test_password')) {",
+                    "        pm.environment.set('test_password', 'PostmanTestPass!' + rand + ts.toString().slice(-4));",
+                    "    }",
+                    "    if (!pm.environment.get('new_password')) {",
+                    "        pm.environment.set('new_password', 'NewPostmanPass!!' + rand + ts.toString().slice(-4));",
+                    "    }",
+                    "    if (!pm.environment.get('device_name')) {",
+                    "        pm.environment.set('device_name', 'Postman-Device-A');",
+                    "    }",
+                    "    if (!pm.environment.get('second_device_name')) {",
+                    "        pm.environment.set('second_device_name', 'Postman-Device-B');",
+                    "    }",
+                    "    if (!pm.environment.get('test_name')) {",
+                    "        pm.environment.set('test_name', 'Postman Test User');",
+                    "    }",
+                    "})();"
+                ]
+            }
+        }
+    ],
+    "item": [
+        {
+            "name": "00 - Setup",
+            "description": "Initialize runtime test data. Run this folder first. The collection-level pre-request script generates unique emails, passwords, and device names into environment variables when they are empty.",
+            "item": [
+                {
+                    "name": "Generate Test Data",
+                    "description": "Sends a no-op request to trigger the collection-level pre-request script which populates test environment variables. Verify variables are set after running.",
+                    "request": {
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/auth/me",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "me"
+                            ]
+                        }
+                    },
+                    "response": [],
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Environment variables are initialized', function () {",
+                                    "    pm.expect(pm.environment.get('test_email')).to.be.a('string').and.not.empty;",
+                                    "    pm.expect(pm.environment.get('test_password')).to.be.a('string').and.not.empty;",
+                                    "    pm.expect(pm.environment.get('nonexistent_email')).to.be.a('string').and.not.empty;",
+                                    "    pm.expect(pm.environment.get('device_name')).to.be.a('string').and.not.empty;",
+                                    "});",
+                                    "",
+                                    "pm.test('Generated password meets minimum length (15+)', function () {",
+                                    "    pm.expect(pm.environment.get('test_password').length).to.be.at.least(15);",
+                                    "    pm.expect(pm.environment.get('new_password').length).to.be.at.least(15);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "01 - Register",
+            "description": "Registration endpoint scenarios. POST /api/v1/auth/register\n\nFields: name (required), email (required, unique), phone (optional), password (required, 15-64 chars, confirmed), password_confirmation (required), device_name (required).",
+            "item": [
+                {
+                    "name": "Register - Success - 201",
+                    "description": "Register a new user with valid data. Saves access_token and registered_user_id.",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 201 Created', function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "",
+                                    "pm.test('Response is JSON', function () {",
+                                    "    pm.response.to.have.header('Content-Type', /application\\/json/);",
+                                    "});",
+                                    "",
+                                    "pm.test('Response has correct structure', function () {",
+                                    "    var json = pm.response.json();",
+                                    "    pm.expect(json.message).to.eql('Account registered successfully.');",
+                                    "    pm.expect(json.data).to.have.property('user');",
+                                    "    pm.expect(json.data).to.have.property('access_token');",
+                                    "    pm.expect(json.data).to.have.property('token_type', 'Bearer');",
+                                    "    pm.expect(json.data).to.have.property('expires_at');",
+                                    "});",
+                                    "",
+                                    "pm.test('User resource has expected fields', function () {",
+                                    "    var user = pm.response.json().data.user;",
+                                    "    pm.expect(user).to.have.property('id');",
+                                    "    pm.expect(user).to.have.property('name');",
+                                    "    pm.expect(user).to.have.property('email');",
+                                    "    pm.expect(user).to.have.property('role', 'resident');",
+                                    "    pm.expect(user).to.have.property('is_active', true);",
+                                    "});",
+                                    "",
+                                    "pm.test('Password is not exposed in response', function () {",
+                                    "    var user = pm.response.json().data.user;",
+                                    "    pm.expect(user).to.not.have.property('password');",
+                                    "});",
+                                    "",
+                                    "pm.test('Save access_token and user ID', function () {",
+                                    "    var json = pm.response.json();",
+                                    "    pm.environment.set('access_token', json.data.access_token);",
+                                    "    pm.environment.set('registered_user_id', json.data.user.id);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"{{test_name}}\",\n    \"email\": \"{{test_email}}\",\n    \"password\": \"{{test_password}}\",\n    \"password_confirmation\": \"{{test_password}}\",\n    \"device_name\": \"{{device_name}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/register",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "register"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Register - Missing Required Fields - 422",
+                    "description": "Omit all required fields. Expects validation errors.",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 422', function () {",
+                                    "    pm.response.to.have.status(422);",
+                                    "});",
+                                    "",
+                                    "pm.test('Validation errors present', function () {",
+                                    "    var json = pm.response.json();",
+                                    "    pm.expect(json).to.have.property('errors');",
+                                    "    pm.expect(json.errors).to.have.property('name');",
+                                    "    pm.expect(json.errors).to.have.property('email');",
+                                    "    pm.expect(json.errors).to.have.property('password');",
+                                    "    pm.expect(json.errors).to.have.property('device_name');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/register",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "register"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Register - Invalid Email - 422",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 422', function () {",
+                                    "    pm.response.to.have.status(422);",
+                                    "});",
+                                    "",
+                                    "pm.test('Email validation error', function () {",
+                                    "    pm.expect(pm.response.json().errors).to.have.property('email');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Bad Email\",\n    \"email\": \"not-an-email\",\n    \"password\": \"{{test_password}}\",\n    \"password_confirmation\": \"{{test_password}}\",\n    \"device_name\": \"{{device_name}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/register",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "register"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Register - Password Too Short (14 chars) - 422",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 422', function () {",
+                                    "    pm.response.to.have.status(422);",
+                                    "});",
+                                    "",
+                                    "pm.test('Password validation error', function () {",
+                                    "    pm.expect(pm.response.json().errors).to.have.property('password');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Short PW\",\n    \"email\": \"shortpw@example.test\",\n    \"password\": \"aaaaaaaaaaaaaa\",\n    \"password_confirmation\": \"aaaaaaaaaaaaaa\",\n    \"device_name\": \"{{device_name}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/register",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "register"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Register - Password Confirmation Mismatch - 422",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 422', function () {",
+                                    "    pm.response.to.have.status(422);",
+                                    "});",
+                                    "",
+                                    "pm.test('Password validation error', function () {",
+                                    "    pm.expect(pm.response.json().errors).to.have.property('password');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Mismatch\",\n    \"email\": \"mismatch@example.test\",\n    \"password\": \"{{test_password}}\",\n    \"password_confirmation\": \"this does not match at all\",\n    \"device_name\": \"{{device_name}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/register",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "register"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Register - Duplicate Email - 422",
+                    "description": "Uses the same test_email already registered in the success request.",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 422', function () {",
+                                    "    pm.response.to.have.status(422);",
+                                    "});",
+                                    "",
+                                    "pm.test('Email validation error', function () {",
+                                    "    pm.expect(pm.response.json().errors).to.have.property('email');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Duplicate\",\n    \"email\": \"{{test_email}}\",\n    \"password\": \"{{test_password}}\",\n    \"password_confirmation\": \"{{test_password}}\",\n    \"device_name\": \"{{device_name}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/register",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "register"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Register - Injected Role and is_active Ignored - 201",
+                    "description": "Attempts to inject role=super_admin and is_active=false. The server ignores these and returns role=resident, is_active=true.",
+                    "event": [
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var ts = Date.now();",
+                                    "var rand = Math.random().toString(36).substring(2, 8);",
+                                    "pm.environment.set('_inject_email', 'inject.' + ts + '.' + rand + '@example.test');"
+                                ]
+                            }
+                        },
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 201', function () {",
+                                    "    pm.response.to.have.status(201);",
+                                    "});",
+                                    "",
+                                    "pm.test('Role is resident despite injection', function () {",
+                                    "    pm.expect(pm.response.json().data.user.role).to.eql('resident');",
+                                    "});",
+                                    "",
+                                    "pm.test('is_active is true despite injection', function () {",
+                                    "    pm.expect(pm.response.json().data.user.is_active).to.eql(true);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"Injector\",\n    \"email\": \"{{_inject_email}}\",\n    \"password\": \"{{test_password}}\",\n    \"password_confirmation\": \"{{test_password}}\",\n    \"device_name\": \"{{device_name}}\",\n    \"role\": \"super_admin\",\n    \"is_active\": false\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/register",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "register"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "02 - Login",
+            "description": "Login endpoint scenarios. POST /api/v1/auth/login\n\nFields: email (required), password (required), device_name (required).\n\nRate limited: 5/min per email+IP, 30/min per IP.",
+            "item": [
+                {
+                    "name": "Login - Success - 200",
+                    "description": "Login with the registered test user. Saves access_token.",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Response has correct structure', function () {",
+                                    "    var json = pm.response.json();",
+                                    "    pm.expect(json.message).to.eql('Login successful.');",
+                                    "    pm.expect(json.data).to.have.property('user');",
+                                    "    pm.expect(json.data).to.have.property('access_token');",
+                                    "    pm.expect(json.data).to.have.property('token_type', 'Bearer');",
+                                    "    pm.expect(json.data).to.have.property('expires_at');",
+                                    "});",
+                                    "",
+                                    "pm.test('User resource fields present', function () {",
+                                    "    var user = pm.response.json().data.user;",
+                                    "    pm.expect(user).to.have.property('id');",
+                                    "    pm.expect(user).to.have.property('name');",
+                                    "    pm.expect(user).to.have.property('email');",
+                                    "    pm.expect(user).to.have.property('role');",
+                                    "    pm.expect(user).to.have.property('is_active');",
+                                    "});",
+                                    "",
+                                    "pm.test('Password not in response', function () {",
+                                    "    pm.expect(pm.response.json().data.user).to.not.have.property('password');",
+                                    "});",
+                                    "",
+                                    "pm.test('Save access_token', function () {",
+                                    "    pm.environment.set('access_token', pm.response.json().data.access_token);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"{{test_email}}\",\n    \"password\": \"{{test_password}}\",\n    \"device_name\": \"{{device_name}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Login - Wrong Password - 401",
+                    "description": "Uses correct email but wrong password. Returns same generic 401 as missing user.",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 401', function () {",
+                                    "    pm.response.to.have.status(401);",
+                                    "});",
+                                    "",
+                                    "pm.test('Generic error message', function () {",
+                                    "    pm.expect(pm.response.json().message).to.eql('The provided credentials are invalid.');",
+                                    "});",
+                                    "",
+                                    "pm.test('No errors object (not validation)', function () {",
+                                    "    pm.expect(pm.response.json()).to.not.have.property('errors');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"{{test_email}}\",\n    \"password\": \"totally wrong passphrase value\",\n    \"device_name\": \"{{device_name}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Login - Nonexistent Email - 401",
+                    "description": "Uses an email that does not exist. Returns the same generic 401 as wrong password to prevent account enumeration.",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 401', function () {",
+                                    "    pm.response.to.have.status(401);",
+                                    "});",
+                                    "",
+                                    "pm.test('Same generic error message as wrong password', function () {",
+                                    "    pm.expect(pm.response.json().message).to.eql('The provided credentials are invalid.');",
+                                    "});",
+                                    "",
+                                    "pm.test('No errors object', function () {",
+                                    "    pm.expect(pm.response.json()).to.not.have.property('errors');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"{{nonexistent_email}}\",\n    \"password\": \"{{test_password}}\",\n    \"device_name\": \"{{device_name}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Login - Inactive Account - 401",
+                    "description": "REQUIRES LOCAL FIXTURE: You must manually create an inactive user in your local database before running this request.\n\nSet environment variables:\n- inactive_user_email\n- inactive_user_password\n\nExample SQL:\nINSERT INTO users (name, email, password, role, is_active, created_at, updated_at) VALUES ('Inactive User', 'inactive@example.test', '<bcrypt_hash>', 'resident', 0, NOW(), NOW());\n\nThe response is the same generic 401 as wrong password — the server does not reveal that the account is inactive.",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "if (!pm.environment.get('inactive_user_email') || !pm.environment.get('inactive_user_password')) {",
+                                    "    pm.test.skip('Skipped: inactive_user_email and inactive_user_password not set');",
+                                    "} else {",
+                                    "    pm.test('Status is 401', function () {",
+                                    "        pm.response.to.have.status(401);",
+                                    "    });",
+                                    "",
+                                    "    pm.test('Same generic error (no account-existence leak)', function () {",
+                                    "        pm.expect(pm.response.json().message).to.eql('The provided credentials are invalid.');",
+                                    "    });",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"{{inactive_user_email}}\",\n    \"password\": \"{{inactive_user_password}}\",\n    \"device_name\": \"{{device_name}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Login - Missing Email - 422",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 422', function () {",
+                                    "    pm.response.to.have.status(422);",
+                                    "});",
+                                    "",
+                                    "pm.test('Email validation error', function () {",
+                                    "    pm.expect(pm.response.json().errors).to.have.property('email');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"password\": \"{{test_password}}\",\n    \"device_name\": \"{{device_name}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Login - Missing Password - 422",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 422', function () {",
+                                    "    pm.response.to.have.status(422);",
+                                    "});",
+                                    "",
+                                    "pm.test('Password validation error', function () {",
+                                    "    pm.expect(pm.response.json().errors).to.have.property('password');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"{{test_email}}\",\n    \"device_name\": \"{{device_name}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Login - Invalid Email Format - 422",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 422', function () {",
+                                    "    pm.response.to.have.status(422);",
+                                    "});",
+                                    "",
+                                    "pm.test('Email validation error', function () {",
+                                    "    pm.expect(pm.response.json().errors).to.have.property('email');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"not-a-valid-email\",\n    \"password\": \"{{test_password}}\",\n    \"device_name\": \"{{device_name}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "03 - Current User",
+            "description": "GET /api/v1/auth/me\n\nRequires auth:sanctum + EnsureUserIsActive middleware.\n\nReturns UserResource: id, name, email, phone, avatar, role, is_active, email_verified_at, created_at.",
+            "item": [
+                {
+                    "name": "Me - Authenticated - 200",
+                    "description": "Requires a valid access_token from a prior register or login.",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('UserResource structure', function () {",
+                                    "    var data = pm.response.json().data;",
+                                    "    pm.expect(data).to.have.property('id');",
+                                    "    pm.expect(data).to.have.property('name');",
+                                    "    pm.expect(data).to.have.property('email');",
+                                    "    pm.expect(data).to.have.property('phone');",
+                                    "    pm.expect(data).to.have.property('avatar');",
+                                    "    pm.expect(data).to.have.property('role');",
+                                    "    pm.expect(data).to.have.property('is_active');",
+                                    "    pm.expect(data).to.have.property('email_verified_at');",
+                                    "    pm.expect(data).to.have.property('created_at');",
+                                    "});",
+                                    "",
+                                    "pm.test('Sensitive fields absent', function () {",
+                                    "    var data = pm.response.json().data;",
+                                    "    pm.expect(data).to.not.have.property('password');",
+                                    "    pm.expect(data).to.not.have.property('remember_token');",
+                                    "    pm.expect(data).to.not.have.property('tokens');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/auth/me",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "me"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Me - Missing Token - 401",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 401', function () {",
+                                    "    pm.response.to.have.status(401);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/auth/me",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "me"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Me - Invalid Token - 401",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 401', function () {",
+                                    "    pm.response.to.have.status(401);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{invalid_access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/auth/me",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "me"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "04 - Logout",
+            "description": "POST /api/v1/auth/logout\n\nRequires auth:sanctum. Revokes only the current token. Returns 204 No Content.",
+            "item": [
+                {
+                    "name": "Logout - Success - 204",
+                    "description": "Logs out the current session. Saves the revoked token for follow-up verification, then clears access_token.",
+                    "event": [
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.environment.set('revoked_token', pm.environment.get('access_token'));"
+                                ]
+                            }
+                        },
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 204 No Content', function () {",
+                                    "    pm.response.to.have.status(204);",
+                                    "});",
+                                    "",
+                                    "pm.test('Response body is empty', function () {",
+                                    "    pm.expect(pm.response.text()).to.be.empty;",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 204) {",
+                                    "    pm.environment.set('access_token', '');",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/auth/logout",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "logout"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Me - Revoked Token - 401",
+                    "description": "Verify that the just-revoked token no longer grants access.",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 401 (revoked token)', function () {",
+                                    "    pm.response.to.have.status(401);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{revoked_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/auth/me",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "me"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Logout - Without Token - 401",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 401', function () {",
+                                    "    pm.response.to.have.status(401);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/auth/logout",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "logout"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Logout - Invalid Token - 401",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 401', function () {",
+                                    "    pm.response.to.have.status(401);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{invalid_access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/auth/logout",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "logout"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "05 - Change Password",
+            "description": "PUT /api/v1/auth/password\n\nRequires auth:sanctum + EnsureUserIsActive.\n\nFields: current_password (required), password (required, 15-64 chars, confirmed, must differ from current), password_confirmation (required).\n\nReturns 204 No Content. Revokes all other tokens.",
+            "item": [
+                {
+                    "name": "Login - Get Fresh Token for Password Change",
+                    "description": "Re-login to get a fresh access_token before password change tests.",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Save access_token', function () {",
+                                    "    pm.environment.set('access_token', pm.response.json().data.access_token);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"{{test_email}}\",\n    \"password\": \"{{test_password}}\",\n    \"device_name\": \"{{device_name}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Change Password - Success - 204",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 204 No Content', function () {",
+                                    "    pm.response.to.have.status(204);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"current_password\": \"{{test_password}}\",\n    \"password\": \"{{new_password}}\",\n    \"password_confirmation\": \"{{new_password}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "password"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Me - Current Token Still Valid After Password Change - 200",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 200 (current token survives)', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{base_url}}/auth/me",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "me"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Login - Old Password Fails - 401",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 401 (old password rejected)', function () {",
+                                    "    pm.response.to.have.status(401);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"{{test_email}}\",\n    \"password\": \"{{test_password}}\",\n    \"device_name\": \"{{device_name}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Login - New Password Works - 200",
+                    "description": "After a successful password change, update test_password to new_password for subsequent requests.",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 200 (new password works)', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "if (pm.response.code === 200) {",
+                                    "    pm.environment.set('access_token', pm.response.json().data.access_token);",
+                                    "    pm.environment.set('test_password', pm.environment.get('new_password'));",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"{{test_email}}\",\n    \"password\": \"{{new_password}}\",\n    \"device_name\": \"{{device_name}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Change Password - Wrong Current Password - 422",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 422', function () {",
+                                    "    pm.response.to.have.status(422);",
+                                    "});",
+                                    "",
+                                    "pm.test('current_password validation error', function () {",
+                                    "    pm.expect(pm.response.json().errors).to.have.property('current_password');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"current_password\": \"wrong current password value\",\n    \"password\": \"some brand new passphrase\",\n    \"password_confirmation\": \"some brand new passphrase\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "password"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Change Password - Missing Current Password - 422",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 422', function () {",
+                                    "    pm.response.to.have.status(422);",
+                                    "});",
+                                    "",
+                                    "pm.test('current_password validation error', function () {",
+                                    "    pm.expect(pm.response.json().errors).to.have.property('current_password');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"password\": \"some brand new passphrase\",\n    \"password_confirmation\": \"some brand new passphrase\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "password"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Change Password - Confirmation Mismatch - 422",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 422', function () {",
+                                    "    pm.response.to.have.status(422);",
+                                    "});",
+                                    "",
+                                    "pm.test('Password validation error', function () {",
+                                    "    pm.expect(pm.response.json().errors).to.have.property('password');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"current_password\": \"{{test_password}}\",\n    \"password\": \"some brand new passphrase\",\n    \"password_confirmation\": \"mismatched confirmation!!\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "password"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Change Password - Too Short - 422",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 422', function () {",
+                                    "    pm.response.to.have.status(422);",
+                                    "});",
+                                    "",
+                                    "pm.test('Password validation error', function () {",
+                                    "    pm.expect(pm.response.json().errors).to.have.property('password');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"current_password\": \"{{test_password}}\",\n    \"password\": \"shortpassword!\",\n    \"password_confirmation\": \"shortpassword!\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "password"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Change Password - Without Auth - 401",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 401', function () {",
+                                    "    pm.response.to.have.status(401);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "auth": {
+                            "type": "noauth"
+                        },
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"current_password\": \"{{test_password}}\",\n    \"password\": \"some brand new passphrase\",\n    \"password_confirmation\": \"some brand new passphrase\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "password"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "06 - Forgot Password",
+            "description": "POST /api/v1/auth/forgot-password\n\nFields: email (required).\n\nAlways returns the same generic 200 response regardless of whether the email exists. Rate limited: 3/hr per email, 10/hr per IP.",
+            "item": [
+                {
+                    "name": "Forgot Password - Existing Email - 200",
+                    "description": "After running, retrieve the reset token from your local mail channel (log file, Mailtrap, etc.) and set the reset_token environment variable.",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Generic message (anti-enumeration)', function () {",
+                                    "    pm.expect(pm.response.json().message).to.eql('If an account exists for this email, a password reset link has been sent.');",
+                                    "});",
+                                    "",
+                                    "pm.test('No token or data in response', function () {",
+                                    "    pm.expect(pm.response.json()).to.not.have.property('token');",
+                                    "    pm.expect(pm.response.json()).to.not.have.property('data');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"{{test_email}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/forgot-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "forgot-password"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Forgot Password - Nonexistent Email - 200",
+                    "description": "Same generic response as existing email. Does not reveal account existence.",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 200', function () {",
+                                    "    pm.response.to.have.status(200);",
+                                    "});",
+                                    "",
+                                    "pm.test('Same generic message', function () {",
+                                    "    pm.expect(pm.response.json().message).to.eql('If an account exists for this email, a password reset link has been sent.');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"{{nonexistent_email}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/forgot-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "forgot-password"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Forgot Password - Invalid Email Format - 422",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 422', function () {",
+                                    "    pm.response.to.have.status(422);",
+                                    "});",
+                                    "",
+                                    "pm.test('Email validation error', function () {",
+                                    "    pm.expect(pm.response.json().errors).to.have.property('email');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"not-a-valid-email\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/forgot-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "forgot-password"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Forgot Password - Missing Email - 422",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 422', function () {",
+                                    "    pm.response.to.have.status(422);",
+                                    "});",
+                                    "",
+                                    "pm.test('Email validation error', function () {",
+                                    "    pm.expect(pm.response.json().errors).to.have.property('email');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/forgot-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "forgot-password"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "07 - Reset Password",
+            "description": "POST /api/v1/auth/reset-password\n\nFields: email (required), token (required), password (required, 15-64 chars, confirmed), password_confirmation (required).\n\nThe reset_token must be obtained from the local mail channel after running Forgot Password. Rate limited: 5/15min per IP.",
+            "item": [
+                {
+                    "name": "Reset Password - Success - 200",
+                    "description": "PREREQUISITE: Run 'Forgot Password - Existing Email' first, then retrieve the reset token from your local mail channel (log driver, Mailtrap, etc.) and set the reset_token environment variable.\n\nAll existing access tokens are revoked on successful reset.",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "if (!pm.environment.get('reset_token')) {",
+                                    "    pm.test.skip('Skipped: reset_token not set. Run Forgot Password first and set reset_token from your mail channel.');",
+                                    "} else {",
+                                    "    pm.test('Status is 200', function () {",
+                                    "        pm.response.to.have.status(200);",
+                                    "    });",
+                                    "",
+                                    "    pm.test('Success message', function () {",
+                                    "        pm.expect(pm.response.json().message).to.eql('Password reset successfully.');",
+                                    "    });",
+                                    "",
+                                    "    pm.test('No token in response', function () {",
+                                    "        pm.expect(pm.response.json()).to.not.have.property('access_token');",
+                                    "        pm.expect(pm.response.json()).to.not.have.property('data');",
+                                    "    });",
+                                    "",
+                                    "    if (pm.response.code === 200) {",
+                                    "        pm.environment.set('reset_token', '');",
+                                    "    }",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"{{test_email}}\",\n    \"token\": \"{{reset_token}}\",\n    \"password\": \"{{new_password}}\",\n    \"password_confirmation\": \"{{new_password}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/reset-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "reset-password"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Reset Password - Invalid Token - 422",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 422', function () {",
+                                    "    pm.response.to.have.status(422);",
+                                    "});",
+                                    "",
+                                    "pm.test('Validation error on email', function () {",
+                                    "    pm.expect(pm.response.json().errors).to.have.property('email');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"{{test_email}}\",\n    \"token\": \"this-is-not-a-valid-reset-token\",\n    \"password\": \"{{new_password}}\",\n    \"password_confirmation\": \"{{new_password}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/reset-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "reset-password"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Reset Password - Missing Token - 422",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 422', function () {",
+                                    "    pm.response.to.have.status(422);",
+                                    "});",
+                                    "",
+                                    "pm.test('Token validation error', function () {",
+                                    "    pm.expect(pm.response.json().errors).to.have.property('token');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"{{test_email}}\",\n    \"password\": \"{{new_password}}\",\n    \"password_confirmation\": \"{{new_password}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/reset-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "reset-password"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Reset Password - Invalid Email - 422",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 422', function () {",
+                                    "    pm.response.to.have.status(422);",
+                                    "});",
+                                    "",
+                                    "pm.test('Email validation error', function () {",
+                                    "    pm.expect(pm.response.json().errors).to.have.property('email');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"not-valid\",\n    \"token\": \"some-token\",\n    \"password\": \"{{new_password}}\",\n    \"password_confirmation\": \"{{new_password}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/reset-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "reset-password"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Reset Password - Password Too Short - 422",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 422', function () {",
+                                    "    pm.response.to.have.status(422);",
+                                    "});",
+                                    "",
+                                    "pm.test('Password validation error', function () {",
+                                    "    pm.expect(pm.response.json().errors).to.have.property('password');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"{{test_email}}\",\n    \"token\": \"some-token\",\n    \"password\": \"shortpassword!\",\n    \"password_confirmation\": \"shortpassword!\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/reset-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "reset-password"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Reset Password - Confirmation Mismatch - 422",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 422', function () {",
+                                    "    pm.response.to.have.status(422);",
+                                    "});",
+                                    "",
+                                    "pm.test('Password validation error', function () {",
+                                    "    pm.expect(pm.response.json().errors).to.have.property('password');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"{{test_email}}\",\n    \"token\": \"some-token\",\n    \"password\": \"{{new_password}}\",\n    \"password_confirmation\": \"mismatched value here\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/reset-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "reset-password"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Reset Password - Missing Email - 422",
+                    "description": "Omit the email field from reset password request. Expects 422 with email validation error.",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('Status is 422', function () {",
+                                    "    pm.response.to.have.status(422);",
+                                    "});",
+                                    "",
+                                    "pm.test('Email validation error', function () {",
+                                    "    pm.expect(pm.response.json().errors).to.have.property('email');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"token\": \"some-valid-token-format\",\n    \"password\": \"{{new_password}}\",\n    \"password_confirmation\": \"{{new_password}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/reset-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "reset-password"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "08 - Authentication Sequences",
+            "description": "End-to-end ordered flows. Run requests within each sub-folder in sequence.",
+            "item": [
+                {
+                    "name": "Registration Flow",
+                    "description": "Register → Me → Logout → Verify revoked → Login again.",
+                    "item": [
+                        {
+                            "name": "1. Register New User",
+                            "event": [
+                                {
+                                    "listen": "prerequest",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "var ts = Date.now(); var r = Math.random().toString(36).substring(2,8);",
+                                            "pm.environment.set('_seq_email', 'seq.' + ts + '.' + r + '@example.test');"
+                                        ]
+                                    }
+                                },
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('201', function () { pm.response.to.have.status(201); });",
+                                            "pm.environment.set('access_token', pm.response.json().data.access_token);"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"Seq User\",\n    \"email\": \"{{_seq_email}}\",\n    \"password\": \"{{test_password}}\",\n    \"password_confirmation\": \"{{test_password}}\",\n    \"device_name\": \"{{device_name}}\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/auth/register",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "register"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "2. Access Me",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('200', function () { pm.response.to.have.status(200); });"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{access_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/auth/me",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "me"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "3. Logout",
+                            "event": [
+                                {
+                                    "listen": "prerequest",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.environment.set('revoked_token', pm.environment.get('access_token'));"
+                                        ]
+                                    }
+                                },
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('204', function () { pm.response.to.have.status(204); });",
+                                            "pm.environment.set('access_token', '');"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{access_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/auth/logout",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "logout"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "4. Verify Revoked Token",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('401', function () { pm.response.to.have.status(401); });"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{revoked_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/auth/me",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "me"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "5. Login Again",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('200', function () { pm.response.to.have.status(200); });",
+                                            "pm.environment.set('access_token', pm.response.json().data.access_token);"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"email\": \"{{_seq_email}}\",\n    \"password\": \"{{test_password}}\",\n    \"device_name\": \"{{device_name}}\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/auth/login",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "login"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Multi-Device Password Change Flow",
+                    "description": "Login device 1 → Login device 2 → Change password with device 1 → Verify device 1 still works → Verify device 2 revoked → Old password fails → New password works.",
+                    "item": [
+                        {
+                            "name": "1. Login Device One",
+                            "event": [
+                                {
+                                    "listen": "prerequest",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "var ts = Date.now(); var r = Math.random().toString(36).substring(2,8);",
+                                            "pm.environment.set('_cpseq_email', 'cpseq.' + ts + '.' + r + '@example.test');",
+                                            "// Register this user first via API",
+                                            ""
+                                        ]
+                                    }
+                                },
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "if (pm.response.code === 201) { pm.environment.set('access_token', pm.response.json().data.access_token); pm.test('Registered 201', function(){ pm.response.to.have.status(201); }); }"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"CP Seq User\",\n    \"email\": \"{{_cpseq_email}}\",\n    \"password\": \"{{test_password}}\",\n    \"password_confirmation\": \"{{test_password}}\",\n    \"device_name\": \"{{device_name}}\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/auth/register",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "register"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "2. Login Device Two",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('200', function () { pm.response.to.have.status(200); });",
+                                            "pm.environment.set('second_access_token', pm.response.json().data.access_token);"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"email\": \"{{_cpseq_email}}\",\n    \"password\": \"{{test_password}}\",\n    \"device_name\": \"{{second_device_name}}\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/auth/login",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "login"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "3. Change Password (Device One)",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('204', function () { pm.response.to.have.status(204); });"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{access_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"current_password\": \"{{test_password}}\",\n    \"password\": \"{{new_password}}\",\n    \"password_confirmation\": \"{{new_password}}\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/auth/password",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "password"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "4. Verify Device One Still Works",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('200', function () { pm.response.to.have.status(200); });"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{access_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/auth/me",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "me"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "5. Verify Device Two Revoked",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('401 (device two revoked)', function () { pm.response.to.have.status(401); });"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{second_access_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/auth/me",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "me"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "6. Old Password Fails",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('401', function () { pm.response.to.have.status(401); });"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"email\": \"{{_cpseq_email}}\",\n    \"password\": \"{{test_password}}\",\n    \"device_name\": \"{{device_name}}\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/auth/login",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "login"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "7. New Password Works",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('200', function () { pm.response.to.have.status(200); });",
+                                            "pm.environment.set('access_token', pm.response.json().data.access_token);",
+                                            "pm.environment.set('test_password', pm.environment.get('new_password'));"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"email\": \"{{_cpseq_email}}\",\n    \"password\": \"{{new_password}}\",\n    \"device_name\": \"{{device_name}}\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/auth/login",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "login"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Password Reset Flow",
+                    "description": "Forgot password → (manual token setup) → Reset → Verify tokens revoked → Old password fails → New password works.\n\nAfter step 1, retrieve the reset token from your local mail channel and set the reset_token environment variable before running step 3.",
+                    "item": [
+                        {
+                            "name": "1. Forgot Password Request",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('200', function () { pm.response.to.have.status(200); });"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"email\": \"{{test_email}}\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/auth/forgot-password",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "forgot-password"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "2. CHECKPOINT - Set reset_token",
+                            "description": "STOP HERE. Retrieve the reset token from your configured local mail channel (log file, Mailtrap, etc.) and set the reset_token environment variable before continuing.\n\nThis is not a real API request — it serves as a checkpoint reminder.",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "if (!pm.environment.get('reset_token')) {",
+                                            "    pm.test.skip('Set reset_token from mail channel before continuing');",
+                                            "} else {",
+                                            "    pm.test('reset_token is set', function () { pm.expect(pm.environment.get('reset_token')).to.not.be.empty; });",
+                                            "}"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "auth": {
+                                    "type": "noauth"
+                                },
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/auth/me",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "me"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "3. Reset Password",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "if (!pm.environment.get('reset_token')) { pm.test.skip('reset_token not set'); } else {",
+                                            "    pm.test('200', function () { pm.response.to.have.status(200); });",
+                                            "    if (pm.response.code === 200) { pm.environment.set('reset_token', ''); }",
+                                            "}"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"email\": \"{{test_email}}\",\n    \"token\": \"{{reset_token}}\",\n    \"password\": \"{{new_password}}\",\n    \"password_confirmation\": \"{{new_password}}\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/auth/reset-password",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "reset-password"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "4. Previous Token Revoked",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('401 (token revoked by reset)', function () { pm.response.to.have.status(401); });"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "auth": {
+                                    "type": "bearer",
+                                    "bearer": [
+                                        {
+                                            "key": "token",
+                                            "value": "{{access_token}}",
+                                            "type": "string"
+                                        }
+                                    ]
+                                },
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{base_url}}/auth/me",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "me"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "5. Old Password Fails",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('401', function () { pm.response.to.have.status(401); });"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"email\": \"{{test_email}}\",\n    \"password\": \"{{test_password}}\",\n    \"device_name\": \"{{device_name}}\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/auth/login",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "login"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "6. Reset Password Works",
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "type": "text/javascript",
+                                        "exec": [
+                                            "pm.test('200', function () { pm.response.to.have.status(200); });",
+                                            "pm.environment.set('access_token', pm.response.json().data.access_token);",
+                                            "pm.environment.set('test_password', pm.environment.get('new_password'));"
+                                        ]
+                                    }
+                                }
+                            ],
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Accept",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"email\": \"{{test_email}}\",\n    \"password\": \"{{new_password}}\",\n    \"device_name\": \"{{device_name}}\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{base_url}}/auth/login",
+                                    "host": [
+                                        "{{base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "login"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "09 - Rate Limits - Manual",
+            "description": "MANUAL RATE-LIMIT TESTS\n\nThese requests intentionally trigger 429 Too Many Attempts responses. Do NOT run them as part of the normal flow — they will consume your rate-limit quota.\n\nRate limiter thresholds (from implementation):\n- auth-register: 5/hour per IP\n- auth-login-email: 5/minute per email+IP\n- auth-login-ip: 30/minute per IP\n- auth-forgot-email: 3/hour per email\n- auth-forgot-ip: 10/hour per IP\n- auth-reset: 5/15min per IP\n\nUse unique test identities. Wait for windows to expire before re-running.",
+            "item": [
+                {
+                    "name": "Login Email Rate Limit (6 requests, 6th = 429)",
+                    "description": "Sends 5 failed login attempts + 1 more to trigger the auth-login-email limiter (5/min per email+IP). The 6th request should return 429.\n\nRun this MANUALLY. Uses rate_limit_email to avoid affecting your test user.",
+                    "event": [
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var count = parseInt(pm.environment.get('_rl_login_count') || '0', 10);",
+                                    "pm.environment.set('_rl_login_count', (count + 1).toString());"
+                                ]
+                            }
+                        },
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var count = parseInt(pm.environment.get('_rl_login_count') || '0', 10);",
+                                    "",
+                                    "if (count <= 5) {",
+                                    "    pm.test('Request ' + count + ' should be 401', function () {",
+                                    "        pm.response.to.have.status(401);",
+                                    "    });",
+                                    "} else {",
+                                    "    pm.test('Request ' + count + ' should be 429 (rate limited)', function () {",
+                                    "        pm.response.to.have.status(429);",
+                                    "    });",
+                                    "",
+                                    "    pm.test('429 response body', function () {",
+                                    "        pm.expect(pm.response.json().message).to.eql('Too Many Attempts.');",
+                                    "    });",
+                                    "",
+                                    "    pm.environment.set('_rl_login_count', '0');",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"{{rate_limit_email}}\",\n    \"password\": \"wrong passphrase intentional\",\n    \"device_name\": \"Rate-Limit-Test\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Forgot Password Email Rate Limit (4 requests, 4th = 429)",
+                    "description": "Sends 3 forgot-password requests + 1 more to trigger the auth-forgot-email limiter (3/hr per email). The 4th should return 429.\n\nRun this MANUALLY. Uses rate_limit_email.",
+                    "event": [
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var count = parseInt(pm.environment.get('_rl_forgot_count') || '0', 10);",
+                                    "pm.environment.set('_rl_forgot_count', (count + 1).toString());"
+                                ]
+                            }
+                        },
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var count = parseInt(pm.environment.get('_rl_forgot_count') || '0', 10);",
+                                    "",
+                                    "if (count <= 3) {",
+                                    "    pm.test('Request ' + count + ' should be 200', function () {",
+                                    "        pm.response.to.have.status(200);",
+                                    "    });",
+                                    "} else {",
+                                    "    pm.test('Request ' + count + ' should be 429', function () {",
+                                    "        pm.response.to.have.status(429);",
+                                    "    });",
+                                    "",
+                                    "    pm.test('429 response body', function () {",
+                                    "        pm.expect(pm.response.json().message).to.eql('Too Many Attempts.');",
+                                    "    });",
+                                    "",
+                                    "    pm.environment.set('_rl_forgot_count', '0');",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"{{rate_limit_email}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/forgot-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "forgot-password"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Register Rate Limit (6 requests, 6th = 429)",
+                    "description": "auth-register: 5/hour per IP. Send 5 register requests with unique emails + 1 more. The 6th should return 429.\n\nRun MANUALLY. Each request uses a unique email generated in pre-request.",
+                    "event": [
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var count = parseInt(pm.environment.get('_rl_reg_count') || '0', 10);",
+                                    "count++;",
+                                    "pm.environment.set('_rl_reg_count', count.toString());",
+                                    "var ts = Date.now();",
+                                    "pm.environment.set('_rl_reg_email', 'rlreg' + count + '.' + ts + '@example.test');"
+                                ]
+                            }
+                        },
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var count = parseInt(pm.environment.get('_rl_reg_count') || '0', 10);",
+                                    "",
+                                    "if (count <= 5) {",
+                                    "    pm.test('Request ' + count + ' should be 201', function () {",
+                                    "        pm.response.to.have.status(201);",
+                                    "    });",
+                                    "} else {",
+                                    "    pm.test('Request ' + count + ' should be 429', function () {",
+                                    "        pm.response.to.have.status(429);",
+                                    "    });",
+                                    "",
+                                    "    pm.test('429 response body', function () {",
+                                    "        pm.expect(pm.response.json().message).to.eql('Too Many Attempts.');",
+                                    "    });",
+                                    "",
+                                    "    pm.environment.set('_rl_reg_count', '0');",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"RL Register\",\n    \"email\": \"{{_rl_reg_email}}\",\n    \"password\": \"{{test_password}}\",\n    \"password_confirmation\": \"{{test_password}}\",\n    \"device_name\": \"Rate-Limit-Test\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/register",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "register"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Reset Password Rate Limit (6 requests, 6th = 429)",
+                    "description": "auth-reset: 5/15min per IP. Send 5 reset requests + 1 more. Uses invalid token so each returns 422 until the 6th returns 429.\n\nRun MANUALLY.",
+                    "event": [
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var count = parseInt(pm.environment.get('_rl_reset_count') || '0', 10);",
+                                    "pm.environment.set('_rl_reset_count', (count + 1).toString());"
+                                ]
+                            }
+                        },
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var count = parseInt(pm.environment.get('_rl_reset_count') || '0', 10);",
+                                    "",
+                                    "if (count <= 5) {",
+                                    "    pm.test('Request ' + count + ' should be 422', function () {",
+                                    "        pm.response.to.have.status(422);",
+                                    "    });",
+                                    "} else {",
+                                    "    pm.test('Request ' + count + ' should be 429', function () {",
+                                    "        pm.response.to.have.status(429);",
+                                    "    });",
+                                    "",
+                                    "    pm.test('429 response body', function () {",
+                                    "        pm.expect(pm.response.json().message).to.eql('Too Many Attempts.');",
+                                    "    });",
+                                    "",
+                                    "    pm.environment.set('_rl_reset_count', '0');",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"{{rate_limit_email}}\",\n    \"token\": \"invalid-token-for-rate-limit-test\",\n    \"password\": \"{{test_password}}\",\n    \"password_confirmation\": \"{{test_password}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/reset-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "reset-password"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Login IP Rate Limit (31 requests, 31st = 429)",
+                    "description": "auth-login-ip: 30/minute per IP. Send 30 failed login attempts with unique email addresses (so the email-based 5/min limiter is not triggered) + 1 more request. The 31st request should return 429.\\n\\nRun this MANUALLY.",
+                    "event": [
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var count = parseInt(pm.environment.get('_rl_login_ip_count') || '0', 10) + 1;",
+                                    "pm.environment.set('_rl_login_ip_count', count.toString());",
+                                    "var ts = Date.now();",
+                                    "pm.environment.set('_rl_login_ip_email', 'rllip' + count + '.' + ts + '@example.test');"
+                                ]
+                            }
+                        },
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var count = parseInt(pm.environment.get('_rl_login_ip_count') || '0', 10);",
+                                    "",
+                                    "if (count <= 30) {",
+                                    "    pm.test('Request ' + count + ' should be 401', function () {",
+                                    "        pm.response.to.have.status(401);",
+                                    "    });",
+                                    "} else {",
+                                    "    pm.test('Request ' + count + ' should be 429 (IP rate limited)', function () {",
+                                    "        pm.response.to.have.status(429);",
+                                    "    });",
+                                    "",
+                                    "    pm.test('429 response body', function () {",
+                                    "        pm.expect(pm.response.json().message).to.eql('Too Many Attempts.');",
+                                    "    });",
+                                    "",
+                                    "    pm.environment.set('_rl_login_ip_count', '0');",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"{{_rl_login_ip_email}}\",\n    \"password\": \"wrong passphrase intentional\",\n    \"device_name\": \"Rate-Limit-IP-Test\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/login",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "login"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Forgot Password IP Rate Limit (11 requests, 11th = 429)",
+                    "description": "auth-forgot-ip: 10/hour per IP. Send 10 forgot-password requests with unique email addresses (so the email-based 3/hour limiter is not triggered) + 1 more request. The 11th request should return 429.\\n\\nRun this MANUALLY.",
+                    "event": [
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var count = parseInt(pm.environment.get('_rl_forgot_ip_count') || '0', 10) + 1;",
+                                    "pm.environment.set('_rl_forgot_ip_count', count.toString());",
+                                    "var ts = Date.now();",
+                                    "pm.environment.set('_rl_forgot_ip_email', 'rlfip' + count + '.' + ts + '@example.test');"
+                                ]
+                            }
+                        },
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "var count = parseInt(pm.environment.get('_rl_forgot_ip_count') || '0', 10);",
+                                    "",
+                                    "if (count <= 10) {",
+                                    "    pm.test('Request ' + count + ' should be 200', function () {",
+                                    "        pm.response.to.have.status(200);",
+                                    "    });",
+                                    "} else {",
+                                    "    pm.test('Request ' + count + ' should be 429 (IP rate limited)', function () {",
+                                    "        pm.response.to.have.status(429);",
+                                    "    });",
+                                    "",
+                                    "    pm.test('429 response body', function () {",
+                                    "        pm.expect(pm.response.json().message).to.eql('Too Many Attempts.');",
+                                    "    });",
+                                    "",
+                                    "    pm.environment.set('_rl_forgot_ip_count', '0');",
+                                    "}"
+                                ]
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Accept",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"{{_rl_forgot_ip_email}}\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/auth/forgot-password",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "auth",
+                                "forgot-password"
+                            ]
+                        }
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ]
+}
