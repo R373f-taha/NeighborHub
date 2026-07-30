@@ -3,26 +3,23 @@
 namespace Modules\Community\app\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-
 use Modules\Auth\app\Models\User;
+use Modules\Community\app\Models\Unit;
+use Modules\Poll\Models\PollVote;
 use Modules\Post\app\Models\Post;
-use Modules\Poll\app\Models\PollVote;
-use Modules\ServiceListing\app\Models\ServiceListing;
+use Modules\ServiceListing\Models\ServiceListing;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Modules\Poll\app\Models\PollVote as ModelsPollVote;
+use Modules\ServiceListing\app\Models\ServiceListing as ModelsServiceListing;
 
 class Resident extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'user_id',
-        'unit_id',
-        'residence_type',
-        'status',
-        'joined_at',
-        'left_at',
-        'current_marker',
-        'approved_by'
+        'user_id', 'unit_id', 'residence_type', 'status',
+        'joined_at', 'left_at', 'current_marker', 'approved_by'
+        ,'community_id'
     ];
 
     protected $casts = [
@@ -64,12 +61,15 @@ class Resident extends Model
 
     public function serviceListings()
     {
-        return $this->hasMany(ServiceListing::class, 'resident_id');
+        return $this->hasMany(ModelsServiceListing::class, 'resident_id');
+    }
+    public function community(){
+        return $this->belongsTo(Community::class, 'community_id');
     }
 
 
     public function pollVotes()
     {
-        return $this->hasMany(PollVote::class, 'voter_id');
+        return $this->hasMany(ModelsPollVote::class, 'voter_id');
     }
 }

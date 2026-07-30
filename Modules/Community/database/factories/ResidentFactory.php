@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Community\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Auth\app\Models\User;
 use Modules\Community\app\Models\Resident;
 use Modules\Community\app\Models\Unit;
@@ -13,7 +14,7 @@ use Modules\Community\app\Models\Unit;
  * @extends Factory<Resident>
  */
 class ResidentFactory extends Factory
-{
+{use HasFactory;
     /**
      * @var class-string<Resident>
      */

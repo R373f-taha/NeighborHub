@@ -3,6 +3,7 @@
 namespace Modules\Community\app\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Cache;
 use Modules\Community\app\Models\Announcement as AppModelsAnnouncement;
 use Modules\Community\app\Models\Resident;
 use Modules\Community\app\Models\Unit;
@@ -30,15 +31,20 @@ class Community extends Model
         return $this->hasMany(Unit::class);
     }
 
+   public function managers()
+    {
+        return $this->belongsToMany(
+            User::class,
+            'community_mangers',
+            'community_id',
+            'manager_id'
+        );
+}
  public function communityManagers()
 {
     return $this->hasMany(CommunityManager::class);
 }
 
-public function managers()
-{
-    return $this->belongsToMany( User::class, 'community_mangers', 'community_id',  'manager_id');
-}
 
     public function residents()
 {
@@ -55,10 +61,10 @@ public function managers()
         return $this->hasMany(Issue::class);
     }
 
-    public function conversations()
-    {
-        return $this->hasMany(Conversation::class);
-    }
+    // public function conversations()
+    // {
+    //     return $this->hasMany(Conversations::class);
+    // }
 
     public function polls()
     {
@@ -76,5 +82,31 @@ public function managers()
     }
     public function comments(){
         return $this->hasMany(Comment::class);
+    }
+
+
+
+
+     public function activeResidents()
+    {
+        return $this->residents()->where('status', 'active')->where('current_marker', true);
+    }
+    protected static function booted(): void
+    {
+        static::saved(function ($community) {
+            static::clearCache($community->id);
+        });
+
+        static::deleted(function ($community) {
+            static::clearCache($community->id);
+        });
+    }
+
+    public static function clearCache(int $id): void
+    {
+        Cache::forget("community_stats_{$id}");
+        Cache::forget("community_residents_stats_{$id}");
+        Cache::forget("community_single_{$id}");
+        Cache::forget('community_list');
     }
 }
