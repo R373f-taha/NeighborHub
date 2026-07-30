@@ -7,7 +7,7 @@ namespace Modules\Post\Database\Seeders;
 use Illuminate\Database\Seeder;
 
 
-class DatabaseSeeder extends Seeder
+class PostDatabaseSeeder extends Seeder
 {
     public function run(): void
     {

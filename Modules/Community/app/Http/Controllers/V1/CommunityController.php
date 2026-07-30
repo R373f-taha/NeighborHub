@@ -10,7 +10,7 @@ use Modules\Community\app\Models\Community;
 use Modules\Community\app\Services\V1\CommunityService;
 use Modules\Community\app\Http\Requests\StoreCommunityRequest;
 use Modules\Community\app\Http\Requests\UpdateCommunityRequest;
-use Modules\Community\App\Transformers\CommunityResource;
+use Modules\Community\app\Transformers\CommunityResource;
 
 class CommunityController extends Controller
 {

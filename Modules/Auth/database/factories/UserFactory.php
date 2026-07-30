@@ -30,13 +30,13 @@ class UserFactory extends Factory
             // سيتم تشفيرها تلقائياً بواسطة cast في الـ Model
             'password' => 'password',
 
-            'role' => fake()->randomElement(UserRole::cases()),
+            'role' => UserRole::Resident,
 
             'phone' => fake()->phoneNumber(),
 
             'avatar' => fake()->imageUrl(300, 300, 'people'),
 
-            'is_active' => fake()->boolean(90),
+            'is_active' => true,
 
             'email_verified_at' => now(),
         ];

@@ -11,8 +11,13 @@ class CommunitySeeder extends Seeder
 {
     public function run(): void
     {
-        Community::factory()
-            ->count(10)
-            ->create();
+        $existing = Community::count();
+        $missing = max(0, 10 - $existing);
+
+        if ($missing > 0) {
+            Community::factory()
+                ->count($missing)
+                ->create();
+        }
     }
 }

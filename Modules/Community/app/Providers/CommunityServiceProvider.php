@@ -43,8 +43,7 @@ class CommunityServiceProvider extends ServiceProvider
         $this->registerMiddleware();
     }
 
-    /**
-     */
+
     protected function registerMiddleware(): void
     {
         Route::aliasMiddleware('resident', ResidentMiddleware::class);
