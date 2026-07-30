@@ -4,33 +4,51 @@ declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
 use Modules\Community\app\Http\Controllers\V1\CommunityController;
-use Modules\Community\app\Services\V1\MembershipController;
+use Modules\Community\app\Http\Controllers\V1\StatsController;
+use Modules\Community\app\Http\Controllers\V1\MembershipController;
 
 Route::prefix('api/v1')->group(function () {
-    // Public
+
     Route::get('communities', [CommunityController::class, 'index']);
 
-    // Authenticated
-  //  Route::middleware('auth:sanctum')->group(function () {
-        // Community CRUD
-        Route::post('communities', [CommunityController::class, 'store']); // Super Admin
-        Route::get('communities/{community}', [CommunityController::class, 'show']);
-        Route::put('communities/{community}', [CommunityController::class, 'update']); // Super Admin / Manager
-        Route::delete('communities/{community}', [CommunityController::class, 'destroy']); // Super Admin
+    Route::middleware('auth:sanctum')->group(function () {
 
-        // Community Stats
-        Route::get('communities/{communityId}/stats', [CommunityController::class, 'stats']); // Manager
+        // ===== COMMUNITY CRUD =====
+        Route::post('communities', [CommunityController::class, 'store'])
+            ->middleware(['super.admin', 'throttle:10,60']); // 10 requests per minute
 
-        // Join Community
-        Route::post('communities/{communityId}/join', [MembershipController::class, 'join'])->middleware('auth:sanctum'); // Resident
+        Route::get('communities/{communityId}', [CommunityController::class, 'show'])
+            ->middleware(['manager', 'throttle:60,60']); // 60 requests per minute
 
-        // Residents Management
-        Route::get('communities/{communityId}/residents', [CommunityController::class, 'residents']); // Manager
-        Route::post('communities/{communityId}/residents/{residentId}/approve', [MembershipController::class, 'approve'])->middleware('auth:sanctum'); // Manager
-        Route::post('communities/{communityId}/residents/{residentId}/reject', [MembershipController::class, 'reject']); // Manager
-        Route::post('communities/{community}/residents/{resident}/suspend', [MembershipController::class, 'suspend']); // Manager
+        Route::put('communities/{communityId}', [CommunityController::class, 'update'])
+            ->middleware(['manager.or.super.admin', 'throttle:20,60']); // 20 requests per minute
 
-        // My Residency
-        Route::get('residents/me', [CommunityController::class, 'myResidency'])->middleware('auth:sanctum'); // Resident
-  //  });
+        Route::delete('communities/{communityId}', [CommunityController::class, 'destroy'])
+            ->middleware(['super.admin', 'throttle:5,60']); // 5 requests per minute (sensitive)
+
+        // ===== COMMUNITY STATS =====
+        Route::get('communities/{communityId}/stats', [StatsController::class, 'stats'])
+            ->middleware(['manager.or.super.admin', 'throttle:30,60']); // 30 requests per minute
+
+        Route::get('communities/{communityId}/residents', [StatsController::class, 'residents'])
+            ->middleware(['manager', 'throttle:30,60']); // 30 requests per minute
+
+        // ===== JOIN COMMUNITY =====
+        Route::post('communities/{communityId}/join', [MembershipController::class, 'join'])
+            ->middleware(['resident', 'throttle:5,60']); // 5 requests per minute (to prevent spam)
+
+        // ===== RESIDENTS MANAGEMENT =====
+        Route::post('communities/{communityId}/residents/{residentId}/approve', [MembershipController::class, 'approve'])
+            ->middleware(['manager', 'throttle:20,60']); // 20 requests per minute
+
+        Route::post('communities/{communityId}/residents/{residentId}/reject', [MembershipController::class, 'reject'])
+            ->middleware(['manager', 'throttle:20,60']); // 20 requests per minute
+
+        Route::post('communities/{communityId}/residents/{residentId}/suspend', [MembershipController::class, 'suspend'])
+            ->middleware(['manager', 'throttle:20,60']); // 20 requests per minute
+
+        // ===== MY RESIDENCY =====
+        Route::get('residents/me', [MembershipController::class, 'myResidency'])
+            ->middleware(['resident', 'throttle:60,60']); // 60 requests per minute
+    });
 });

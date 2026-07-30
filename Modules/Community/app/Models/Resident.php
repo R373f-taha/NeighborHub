@@ -8,6 +8,9 @@ use Modules\Community\app\Models\Unit;
 use Modules\Poll\Models\PollVote;
 use Modules\Post\app\Models\Post;
 use Modules\ServiceListing\Models\ServiceListing;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Modules\Poll\app\Models\PollVote as ModelsPollVote;
+use Modules\ServiceListing\app\Models\ServiceListing as ModelsServiceListing;
 
 class Resident extends Model
 {
@@ -58,7 +61,7 @@ class Resident extends Model
 
     public function serviceListings()
     {
-        return $this->hasMany(ServiceListing::class, 'resident_id');
+        return $this->hasMany(ModelsServiceListing::class, 'resident_id');
     }
     public function community(){
         return $this->belongsTo(Community::class, 'community_id');
@@ -67,6 +70,6 @@ class Resident extends Model
 
     public function pollVotes()
     {
-        return $this->hasMany(PollVote::class, 'voter_id');
+        return $this->hasMany(ModelsPollVote::class, 'voter_id');
     }
 }

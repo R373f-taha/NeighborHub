@@ -9,8 +9,8 @@ use Illuminate\Foundation\Http\FormRequest;
 class StoreCommunityRequest extends FormRequest
 {
     public function authorize(): bool
-    {return true;
-      //  return $this->user() && $this->user()->isSuperAdmin();
+    {
+      return $this->user() && $this->user()->isSuperAdmin();
     }
 
     public function rules(): array

@@ -7,42 +7,60 @@ namespace Modules\Community\app\Http\Controllers\V1;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Modules\Community\app\Models\Community;
-use Modules\Community\app\Models\Resident;
 use Modules\Community\app\Services\V1\CommunityService;
 use Modules\Community\app\Http\Requests\StoreCommunityRequest;
 use Modules\Community\app\Http\Requests\UpdateCommunityRequest;
-use Modules\Community\app\Http\Requests\JoinCommunityRequest;
-use Modules\Community\app\Services\V1\MembershipService;
 use Modules\Community\App\Transformers\CommunityResource;
-use Modules\Community\App\Transformers\ResidentResource;
 
 class CommunityController extends Controller
 {
     public function __construct(
         private CommunityService $communityService,
-        private MembershipService $membershipService
+
 
     ) {}
 
-    /**
-     * GET /communities - Public
+  /**
+     * GET /api/v1/communities
+     * List all active communities (Public)
      */
     public function index(Request $request)
     {
-        $communities = Community::where('is_active', true)
-            ->when($request->city, fn($q) => $q->where('city', $request->city))
-            ->paginate(20);
+        try {
+            $filters = $request->only(['city', 'name']);
+            $perPage = $request->input('per_page', 20);
 
-        if ($communities->total() === 0) {
+            $communities = $this->communityService->getCommunities($filters, $perPage);
+
+            if ($communities->total() === 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No communities found.',
+                    'data' => [],
+                ], 404);
+            }
+
             return response()->json([
-                'message' => 'No communities found',
-                'data' => [],
-            ], 404);
+                'success' => true,
+                'message' => 'Communities retrieved successfully.',
+                'data' => CommunityResource::collection($communities),
+                'meta' => [
+                    'total' => $communities->total(),
+                    'per_page' => $communities->perPage(),
+                    'current_page' => $communities->currentPage(),
+                    'last_page' => $communities->lastPage(),
+                ],
+            ], 200);
+
+        } catch (\Exception $e) {
+
+
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred: ' . $e->getMessage(),
+            ], 500);
         }
-
-        return CommunityResource::collection($communities);
     }
-
     /**
      * POST /communities - Super Admin only
      */
@@ -55,8 +73,9 @@ class CommunityController extends Controller
     /**
      * GET /communities/{id} - Auth
      */
-    public function show(Community $community)
+    public function show($communityId)
     {
+        $community=Community::findOrFail($communityId);
         return new CommunityResource($community->load(['units', 'managers']));
     }
 
@@ -67,9 +86,8 @@ class CommunityController extends Controller
     {
         $community = Community::findOrFail($communityId);
 
- //var_dump($request->validated());
-  $updated = $this->communityService->update($community, $request->validated());
-        return new CommunityResource($updated);
+        $updated = $this->communityService->update($community, $request->validated());
+       return new CommunityResource($updated);
     }
 
     /**
@@ -87,15 +105,4 @@ class CommunityController extends Controller
 
 
 
-    /**
-     * GET /residents/me - Resident
-     */
-    public function myResidency(Request $request)
-    {
-        $resident = Resident::where('user_id', $request->user()->id)
-            ->where('current_marker', true)
-            ->firstOrFail();
-
-        return new ResidentResource($resident);
-    }
 }
