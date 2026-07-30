@@ -10,109 +10,47 @@ use Illuminate\Support\Facades\Log;
 use Modules\Community\app\Models\Community;
 use Modules\Community\app\Models\Resident;
 use Modules\Auth\app\Models\User;
+use Modules\Community\app\Traits\CacheableTraits;
 
 class CommunityService
 {
+    use CacheableTraits;
 
-    private const CACHE_TTL = 600;
-
-    /**
-     * Lock timeout in seconds = 10 seconds
-     * Prevents deadlock if a process hangs
-     */
-    private const LOCK_TIMEOUT = 10;
-
-    /**
-     * Generate a standardized cache key
+      /**
+     * Get list of communities with optional filters
      *
-     * @param string $type The type of cache (stats, residents_stats, etc.)
-     * @param int $id The community ID
-     * @return string The cache key
-     *
-     * Example: community_stats_5
+     * @param array $filters
+     * @param int $perPage
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
      */
-    private function cacheKey(string $type, int $id): string
+    public function getCommunities(array $filters = [], int $perPage = 20)
     {
-        return "community_{$type}_{$id}";
-    }
+        Log::info('📋 Communities list requested', [
+            'filters' => $filters,
+            'per_page' => $perPage,
+            'ip' => request()->ip(),
+        ]);
 
-    /**
-     * Clear all cache entries related to a specific community
-     * Called after any data modification (create, update, delete)
-     *
-     * @param int|null $communityId The community ID
-     * @return void
-     */
-    private function clearCache(?int $communityId): void
-    {
-        if ($communityId === null) {
-            Log::warning('clearCache called with null ID');
-            return;
+        $query = Community::where('is_active', true);
+
+        if (!empty($filters['city'])) {
+            $query->where('city', 'like', '%' . $filters['city'] . '%');
+            Log::info('🔍 Filtering by city', ['city' => $filters['city']]);
         }
 
-        Cache::forget($this->cacheKey('stats', $communityId));
-
-        Cache::forget($this->cacheKey('residents_stats', $communityId));
-
-        Cache::forget("community_single_{$communityId}");
-
-        Cache::forget('community_list');
-
-        Log::info("Cache cleared for community ID: {$communityId}");
-    }
-
-    /**
-     * Protect against Cache Stampede
-     * Uses a distributed lock to ensure only one process rebuilds the cache
-     *
-     * Cache Stampede: When many requests try to rebuild the same cache
-     * entry simultaneously, causing a spike in database load
-     *
-     * @param string $key The cache key to remember
-     * @param int $ttl The time to live in seconds
-     * @param callable $callback The function to generate the value
-     * @return mixed The cached value
-     */
-    private function rememberWithLock(string $key, int $ttl, callable $callback): mixed
-    {
-
-        $value = Cache::get($key);
-
-        if ($value !== null) {
-            return $value;
+        if (!empty($filters['name'])) {
+            $query->where('name', 'like', '%' . $filters['name'] . '%');
+            Log::info('🔍 Filtering by name', ['name' => $filters['name']]);
         }
 
+        $communities = $query->paginate($perPage);
 
-        $lockKey = "lock_{$key}";
-        $lock = Cache::lock($lockKey, self::LOCK_TIMEOUT);
+        Log::info('✅ Communities retrieved', [
+            'total' => $communities->total(),
+            'count' => $communities->count(),
+        ]);
 
-        try {
-
-            $lock->block(self::LOCK_TIMEOUT);
-
-
-            $value = Cache::get($key);
-            if ($value !== null) {
-                return $value;
-            }
-
-
-            $value = $callback();
-
-            // Random TTL helps distribute cache expiration times
-            // Prevents all cache entries from expiring simultaneously
-
-            $randomTtl = $ttl + random_int(0, 60);
-            Cache::put($key, $value, $randomTtl);
-
-            Log::info("Cache rebuilt with lock for key: {$key}, TTL: {$randomTtl}");
-
-            return $value;
-
-        } finally {
-
-            $lock->release();
-        }
+        return $communities;
     }
 
     /**

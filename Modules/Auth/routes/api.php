@@ -9,7 +9,7 @@ Route::prefix('v1')->group(function (): void {
     Route::prefix('auth')->name('auth.')->group(function (): void {
         Route::post('register', [AuthController::class, 'register'])
             ->name('register')
-            ->middleware('throttle:auth-register');
+           ->middleware('throttle:auth-register');
 
         Route::post('login', [AuthController::class, 'login'])
             ->name('login')

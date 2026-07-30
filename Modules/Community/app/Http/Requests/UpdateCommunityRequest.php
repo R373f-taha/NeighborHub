@@ -5,23 +5,26 @@ declare(strict_types=1);
 namespace Modules\Community\app\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Modules\Community\app\Models\Community;
 
 class UpdateCommunityRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        // $user = $this->user();
-        // $community = $this->route('community');
+        $user = $this->user();
+        $communityId = $this->route('communityId');
+        $community=Community::findOrFail($communityId);
 
-        // if ($user->isSuperAdmin()) {
-        //     return true;
-        // }
 
-        // if ($user->isManager()) {
-        //     return $community->managers()->where('manager_id', $user->id)->exists();
-        // }
+        if ($user->isSuperAdmin()) {
+            return true;
+        }
 
-        // return false;
+        if ($user->isManager()) {
+            return $community->managers()->where('manager_id', $user->id)->exists();
+        }
+
+        return false;
 
         return true;
     }

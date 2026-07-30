@@ -35,7 +35,7 @@ class Community extends Model
     {
         return $this->belongsToMany(
             User::class,
-            'community_managers',
+            'community_mangers',
             'community_id',
             'manager_id'
         );
@@ -61,10 +61,10 @@ class Community extends Model
         return $this->hasMany(Issue::class);
     }
 
-    public function conversations()
-    {
-        return $this->hasMany(ModelsConversation::class);
-    }
+    // public function conversations()
+    // {
+    //     return $this->hasMany(Conversations::class);
+    // }
 
     public function polls()
     {
