@@ -14,12 +14,18 @@ class UnitSeeder extends Seeder
     {
         Community::query()
             ->each(function (Community $community) {
+                
+                $existingCount = $community->units()->count();
+                $missing = max(0, $community->total_units - $existingCount);
 
-                Unit::factory()
-                    ->count($community->total_units)
-                    ->create([
+                for ($i = 1; $i <= $missing; $i++) {
+                    $unitNumber = 'A-' . str_pad((string)($existingCount + $i), 4, '0', STR_PAD_LEFT);
+                    
+                    Unit::factory()->create([
                         'community_id' => $community->id,
+                        'unit_number' => $unitNumber,
                     ]);
+                }
 
             });
     }

@@ -6,7 +6,7 @@ namespace Modules\Interaction\Database\Seeders;
 
 use Illuminate\Database\Seeder;
 
-class DatabaseSeeder extends Seeder
+class InteractionDatabaseSeeder extends Seeder
 {
     public function run(): void
     {

@@ -17,14 +17,16 @@ class CommunityManagerSeeder extends Seeder
             ->where('role', 'manager')
             ->get();
 
+        if ($managers->isEmpty()) {
+            return;
+        }
 
         Community::query()
             ->each(function (Community $community) use ($managers) {
 
                 $manager = $managers->random();
 
-
-                CommunityManager::create([
+                CommunityManager::updateOrCreate([
                     'community_id' => $community->id,
                     'manager_id' => $manager->id,
                 ]);

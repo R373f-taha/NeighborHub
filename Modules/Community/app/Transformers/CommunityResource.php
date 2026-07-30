@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Modules\Community\App\Transformers;
+namespace Modules\Community\app\Transformers;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-use Modules\Community\App\Transformers\UnitResource;
-use Modules\Community\App\Transformers\ResidentResource;
+use Modules\Community\app\Transformers\UnitResource;
+use Modules\Community\app\Transformers\ResidentResource;
 use Modules\Post\App\Transformers\PostResource;
 use Modules\Announcement\App\Transformers\AnnouncementResource;
 use Modules\Issue\App\Transformers\IssueResource;

@@ -11,7 +11,7 @@ use Modules\Community\app\Models\Community;
 use Modules\Community\app\Models\Resident;
 use Modules\Community\app\Services\V1\MembershipService;
 use Modules\Community\app\Http\Requests\JoinCommunityRequest;
-use Modules\Community\App\Transformers\ResidentResource;
+use Modules\Community\app\Transformers\ResidentResource;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;

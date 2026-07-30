@@ -2,27 +2,35 @@
 
 namespace Modules\Interaction\app\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Modules\Auth\app\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Modules\Auth\app\Models\User;
+use Modules\Interaction\app\Enums\ReactionType;
 use Modules\Interaction\Database\Factories\ReactionFactory;
 
 class Reaction extends Model
-{ use HasFactory;
-    protected $fillable = ['reactionable_type', 'reactionable_id', 'user_id', 'type'];
+{
+    use HasFactory;
 
+    protected $fillable = ['type'];
 
+    protected $casts = [
+        'type' => ReactionType::class,
+    ];
 
     protected static function newFactory()
     {
         return ReactionFactory::new();
     }
-    public function reactionable()
+
+    public function reactionable(): MorphTo
     {
         return $this->morphTo();
     }
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }

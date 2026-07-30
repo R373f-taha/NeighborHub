@@ -13,8 +13,8 @@ use Modules\Community\app\Http\Requests\StoreCommunityRequest;
 use Modules\Community\app\Http\Requests\UpdateCommunityRequest;
 use Modules\Community\app\Http\Requests\JoinCommunityRequest;
 use Modules\Community\app\Services\V1\MembershipService;
-use Modules\Community\App\Transformers\CommunityResource;
-use Modules\Community\App\Transformers\ResidentResource;
+use Modules\Community\app\Transformers\CommunityResource;
+use Modules\Community\app\Transformers\ResidentResource;
 
 class StatsController extends Controller
 {
