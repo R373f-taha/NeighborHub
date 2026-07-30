@@ -1,46 +1,32 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Community\app\Providers;
 
-use Nwidart\Modules\Support\ModuleServiceProvider;
-use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Gate;
+use Modules\Community\app\Models\Community;
+use Modules\Community\app\Policies\CommunityPolicy;
 
-class CommunityServiceProvider extends ModuleServiceProvider
+class CommunityServiceProvider extends ServiceProvider
 {
-    /**
-     * The name of the module.
-     */
-    protected string $name = 'Community';
+    protected string $moduleName = 'Community';
+    protected string $moduleNameLower = 'community';
 
-    /**
-     * The lowercase version of the module name.
-     */
-    protected string $nameLower = 'community';
+    public function boot(): void
+    {
+        $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
+        $this->loadRoutesFrom(module_path($this->moduleName, 'Routes/api.php'));
 
-    /**
-     * Command classes to register.
-     *
-     * @var string[]
-     */
-    // protected array $commands = [];
+        // Register Policies
+        Gate::policy(Community::class, CommunityPolicy::class);
+    }
 
-    /**
-     * Provider classes to register.
-     *
-     * @var string[]
-     */
-    protected array $providers = [
-        EventServiceProvider::class,
-        RouteServiceProvider::class,
-    ];
-
-    /**
-     * Define module schedules.
-     *
-     * @param $schedule
-     */
-    // protected function configureSchedules(Schedule $schedule): void
-    // {
-    //     $schedule->command('inspire')->hourly();
-    // }
+    public function register(): void
+    {
+        $this->app->bind(
+            \Modules\Community\app\Services\CommunityService::class,
+        );
+    }
 }

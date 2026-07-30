@@ -21,6 +21,7 @@ return new class extends Migration
             $table->timestamp('left_at')->nullable();
             $table->boolean('current_marker')->default(false);
             $table->foreignId('approved_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->foreignId('community_id')->constrained('communities')->cascadeOnDelete();
             $table->timestamps();
 
             $table->unique(['unit_id', 'user_id']);

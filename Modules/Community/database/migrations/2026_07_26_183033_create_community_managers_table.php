@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('community_mangers', function (Blueprint $table) {
+        Schema::create('community_managers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('community_id')->constrained('communities')->cascadeOnDelete();
             $table->foreignId('manager_id')->constrained('users')->cascadeOnDelete();
