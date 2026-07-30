@@ -7,25 +7,30 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\app\Auth\Models\User as ModelsUser;
 use Modules\app\Community\Models\Community as ModelsCommunity;
 use Modules\Auth\app\Models\User as AppModelsUser;
-use Modules\Auth\Models\User;
-use Modules\Community\Models\Community;
-use Modules\Interaction\Models\Comment;
-use Modules\Interaction\Models\Reaction;
-use Modules\Media\Models\Media;
-
+use Modules\Auth\app\Models\User;
+use Modules\Community\app\Models\Community;
+use Modules\Interaction\app\Models\Comment;
+use Modules\Interaction\app\Models\Reaction;
+use Modules\Media\app\Models\Media;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Announcement extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasFactory;
 
     protected $fillable = ['community_id', 'created_by_manager', 'title', 'content', 'priority', 'pinned_until'];
 
     protected $casts = ['pinned_until' => 'datetime'];
 
+
+    protected static function newFactory()
+    {
+        return \Modules\Community\Database\Factories\AnnouncementFactory::new();
+    }
     // ========== العلاقات ==========
 
     public function community()
     {
-        return $this->belongsTo(ModelsCommunity::class);
+        return $this->belongsTo(Community::class);
     }
 
     public function creator()

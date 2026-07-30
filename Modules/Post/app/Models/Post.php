@@ -2,6 +2,7 @@
 
 namespace Modules\Post\app\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Auth\app\Models\User;
@@ -13,7 +14,7 @@ use Modules\Media\app\Models\Media;
 
 class Post extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, HasFactory;
 
     protected $fillable = [
         'community_id', 'resident_id', 'category', 'content',
@@ -54,5 +55,10 @@ class Post extends Model
     public function media()
     {
         return $this->morphMany(Media::class, 'mediable');
+    }
+
+     protected static function newFactory()
+    {
+        return \Modules\Post\Database\Factories\PostFactory::new();
     }
 }

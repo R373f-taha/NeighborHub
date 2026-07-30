@@ -11,6 +11,8 @@ use Modules\ServiceListing\Models\ServiceListing;
 
 class Resident extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'user_id', 'unit_id', 'residence_type', 'status',
         'joined_at', 'left_at', 'current_marker', 'approved_by'
@@ -24,25 +26,35 @@ class Resident extends Model
     ];
 
 
+    protected static function newFactory()
+    {
+        return \Modules\Community\Database\Factories\ResidentFactory::new();
+    }
+
+
     public function user()
     {
         return $this->belongsTo(User::class);
     }
+
 
     public function unit()
     {
         return $this->belongsTo(Unit::class);
     }
 
+
     public function approvedBy()
     {
         return $this->belongsTo(User::class, 'approved_by');
     }
 
+
     public function posts()
     {
         return $this->hasMany(Post::class, 'resident_id');
     }
+
 
     public function serviceListings()
     {
@@ -51,6 +63,7 @@ class Resident extends Model
     public function community(){
         return $this->belongsTo(Community::class, 'community_id');
     }
+
 
     public function pollVotes()
     {

@@ -1,7 +1,7 @@
 <?php
 
 namespace Modules\Community\app\Models;
-
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
 use Modules\Community\app\Models\Announcement as AppModelsAnnouncement;
@@ -9,19 +9,22 @@ use Modules\Community\app\Models\Resident;
 use Modules\Community\app\Models\Unit;
 use Modules\Interaction\app\Models\Comment;
 use Modules\Issue\app\Models\Issue;
-use Modules\Messagingapp\app\Models\Conversation;
+use Modules\Messaging\app\Models\Conversation;
 use Modules\Poll\app\Models\Poll;
 use Modules\Post\app\Models\Post;
-use Modules\ServiceListing\Models\ServiceListing;
+use Modules\ServiceListing\app\Models\ServiceListing;
 use Modules\Auth\app\Models\User;
-use Modules\Messaging\app\Models\Conversation as ModelsConversation;
 
 class Community extends Model
-{
+{  use HasFactory;
     protected $fillable = ['name', 'city', 'address', 'total_units', 'is_active'];
 
     protected $casts = ['is_active' => 'boolean'];
 
+    protected static function newFactory()
+{
+    return \Modules\Community\Database\Factories\CommunityFactory::new();
+}
 
     public function units()
     {
@@ -36,12 +39,17 @@ class Community extends Model
             'community_id',
             'manager_id'
         );
-    }
+}
+ public function communityManagers()
+{
+    return $this->hasMany(CommunityManager::class);
+}
+
 
     public function residents()
-    {
-        return $this->hasMany(Resident::class);
-    }
+{
+    return $this->hasManyThrough(Resident::class,Unit::class);
+}
 
     public function announcements()
     {

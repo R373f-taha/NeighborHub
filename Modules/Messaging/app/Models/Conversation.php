@@ -7,8 +7,15 @@ use Modules\Auth\app\Models\User;
 use Modules\Community\app\Models\Community;
 
 class Conversation extends Model
-{
+{  use HasFactory;
     protected $fillable = ['community_id', 'type', 'status'];
+
+
+    protected static function newFactory()
+    {
+        return ConversationFactory::new();
+    }
+
 
     public function community()
     {
