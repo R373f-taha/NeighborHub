@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('city');
             $table->text('address');
-            $table->integer('total_units');
+            $table->integer('total_units')->default(0);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

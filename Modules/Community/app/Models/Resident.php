@@ -3,11 +3,10 @@
 namespace Modules\Community\app\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Modules\Auth\app\Models\User as ModelsUser;
-use Modules\Auth\Models\User;
-use Modules\Community\Models\Unit;
+use Modules\Auth\app\Models\User;
+use Modules\Community\app\Models\Unit;
 use Modules\Poll\Models\PollVote;
-use Modules\Post\Models\Post;
+use Modules\Post\app\Models\Post;
 use Modules\ServiceListing\Models\ServiceListing;
 
 class Resident extends Model
@@ -15,6 +14,7 @@ class Resident extends Model
     protected $fillable = [
         'user_id', 'unit_id', 'residence_type', 'status',
         'joined_at', 'left_at', 'current_marker', 'approved_by'
+        ,'community_id'
     ];
 
     protected $casts = [
@@ -26,7 +26,7 @@ class Resident extends Model
 
     public function user()
     {
-        return $this->belongsTo(ModelsUser::class);
+        return $this->belongsTo(User::class);
     }
 
     public function unit()
@@ -36,7 +36,7 @@ class Resident extends Model
 
     public function approvedBy()
     {
-        return $this->belongsTo(ModelsUser::class, 'approved_by');
+        return $this->belongsTo(User::class, 'approved_by');
     }
 
     public function posts()
@@ -47,6 +47,9 @@ class Resident extends Model
     public function serviceListings()
     {
         return $this->hasMany(ServiceListing::class, 'resident_id');
+    }
+    public function community(){
+        return $this->belongsTo(Community::class, 'community_id');
     }
 
     public function pollVotes()

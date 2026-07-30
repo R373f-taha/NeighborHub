@@ -1,15 +1,15 @@
 <?php
 
-namespace Modules\Post\Models;
+namespace Modules\Post\app\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Auth\Models\User;
-use Modules\Community\Models\Community;
-use Modules\Community\Models\Resident;
-use Modules\Interaction\Models\Comment;
-use Modules\Interaction\Models\Reaction;
-use Modules\Media\Models\Media;
+use Modules\Auth\app\Models\User;
+use Modules\Community\app\Models\Community;
+use Modules\Community\app\Models\Resident;
+use Modules\Interaction\app\Models\Comment;
+use Modules\Interaction\app\Models\Reaction;
+use Modules\Media\app\Models\Media;
 
 class Post extends Model
 {

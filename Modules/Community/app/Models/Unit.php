@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Community\Models;
+namespace Modules\Community\app\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Modules\Community\app\Models\Community;

@@ -1,10 +1,10 @@
 <?php
 
-namespace Modules\Messaging\Models;
+namespace Modules\Messaging\app\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Modules\Auth\Models\User;
-use Modules\Community\Models\Community;
+use Modules\Auth\app\Models\User;
+use Modules\Community\app\Models\Community;
 
 class Conversation extends Model
 {
