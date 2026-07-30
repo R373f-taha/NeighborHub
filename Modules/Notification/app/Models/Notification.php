@@ -42,7 +42,7 @@ class Notification extends Model
         return $this->morphTo();
     }
 
-    public function logs()
+    public function log()
     {
         return $this->hasOne(NotificationLog::class);
     }
