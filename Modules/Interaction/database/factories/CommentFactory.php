@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Interaction\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Database\Eloquent\Model;
 use Modules\Auth\app\Models\User;
 use Modules\Interaction\app\Models\Comment;
 
@@ -15,28 +16,27 @@ class CommentFactory extends Factory
 {
     protected $model = Comment::class;
 
-public function definition(): array
-{
-    return [
-        'commentable_type' => null,
-
-        'commentable_id' => null,
-
-        'author_id' => User::query()
-            ->inRandomOrder()
-            ->value('id'),
-
-        'parent_id' => null,
-
-        'content' => fake()->paragraph(),
-    ];
-}
-
-
-    public function reply(): static
+    public function definition(): array
     {
-        return $this->state(fn () => [
-            'parent_id' => Comment::factory(),
+        return [
+            'author_id' => User::factory(),
+            'parent_id' => null,
+            'content' => fake()->paragraph(),
+        ];
+    }
+
+    public function forCommentable(Model $commentable): static
+    {
+        return $this->state([
+            'commentable_type' => $commentable->getMorphClass(),
+            'commentable_id' => $commentable->getKey(),
+        ]);
+    }
+
+    public function reply(?Comment $parent = null): static
+    {
+        return $this->state([
+            'parent_id' => $parent?->getKey(),
         ]);
     }
 }

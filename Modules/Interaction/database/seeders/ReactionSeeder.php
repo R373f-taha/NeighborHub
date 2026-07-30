@@ -15,22 +15,22 @@ class ReactionSeeder extends Seeder
     {
         $users = User::query()->get();
 
+        if ($users->isEmpty()) {
+            return;
+        }
 
         Announcement::query()
             ->each(function ($announcement) use ($users) {
 
+                $take = min(10, $users->count());
 
-                foreach ($users->random(10) as $user) {
+                foreach ($users->random($take) as $user) {
 
-
-                    Reaction::factory()
-                        ->create([
-                            'reactionable_type' => Announcement::class,
-
-                            'reactionable_id' => $announcement->id,
-
-                            'user_id' => $user->id,
-                        ]);
+                    Reaction::firstOrCreate([
+                        'reactionable_type' => Announcement::class,
+                        'reactionable_id' => $announcement->id,
+                        'user_id' => $user->id,
+                    ]);
 
                 }
 

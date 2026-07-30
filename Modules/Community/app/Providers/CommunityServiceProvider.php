@@ -4,13 +4,11 @@ declare(strict_types=1);
 
 namespace Modules\Community\app\Providers;
 
-use Modules\Community\App\Http\Middleware\ManagerMiddleware;
-
-use Modules\Community\App\Http\Middleware\ManagerOrSuperAdminMiddleware;
-use Modules\Community\App\Http\Middleware\ResidentMiddleware;
-
-use Modules\Community\App\Http\Middleware\SuperAdminMiddleware;
-use Modules\Community\App\Http\Middleware\ProviderMiddleware;
+use Modules\Community\app\Http\Middleware\ManagerMiddleware;
+use Modules\Community\app\Http\Middleware\ManagerOrSuperAdminMiddleware;
+use Modules\Community\app\Http\Middleware\ResidentMiddleware;
+use Modules\Community\app\Http\Middleware\SuperAdminMiddleware;
+use Modules\Community\app\Http\Middleware\ProviderMiddleware;
 
 
 use Illuminate\Support\ServiceProvider;
@@ -27,8 +25,8 @@ class CommunityServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
-        $this->loadRoutesFrom(module_path($this->moduleName, 'Routes/api.php'));
+        $this->loadMigrationsFrom(module_path($this->moduleName, 'database/migrations'));
+        $this->loadRoutesFrom(module_path($this->moduleName, 'routes/api.php'));
 
         // Register Policies
         Gate::policy(Community::class, CommunityPolicy::class);

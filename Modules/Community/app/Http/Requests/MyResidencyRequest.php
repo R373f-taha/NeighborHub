@@ -2,7 +2,7 @@
 
 namespace Modules\Community\app\Http\Requests;
 
-class myResidencyRequest extends JoinCommunityRequest
+class MyResidencyRequest extends JoinCommunityRequest
 {
     public function rules(): array
     {
