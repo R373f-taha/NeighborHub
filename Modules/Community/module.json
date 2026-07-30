@@ -5,7 +5,8 @@
     "keywords": [],
     "priority": 0,
     "providers": [
-        "Modules\\Community\\app\\Providers\\CommunityServiceProvider"
+        "Modules\\Community\\app\\Providers\\CommunityServiceProvider",
+        "Modules\\Community\\app\\Providers\\AuthServiceProvider"
     ],
     "files": []
 }
