@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Community\App\Transformers;
+namespace Modules\Community\app\Transformers;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;

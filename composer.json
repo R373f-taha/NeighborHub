@@ -3,7 +3,10 @@
     "name": "laravel/laravel",
     "type": "project",
     "description": "The skeleton application for the Laravel framework.",
-    "keywords": ["laravel", "framework"],
+    "keywords": [
+        "laravel",
+        "framework"
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.2",
@@ -28,12 +31,19 @@
     },
     "autoload": {
         "psr-4": {
-        "App\\": "app/",
-        "Modules\\": "Modules/",
-        "Modules\\Auth\\Database\\Factories\\": "Modules/Auth/database/factories/",
-        "Database\\Factories\\": "database/factories/",
-        "Database\\Seeders\\": "database/seeders/"
-    }
+            "App\\": "app/",
+            "Modules\\": "Modules/",
+            "Modules\\Auth\\Database\\Factories\\": "Modules/Auth/database/factories/",
+            "Modules\\Auth\\Database\\Seeders\\": "Modules/Auth/database/seeders/",
+            "Modules\\Post\\Database\\Factories\\": "Modules/Post/database/factories/",
+            "Modules\\Post\\Database\\Seeders\\": "Modules/Post/database/seeders/",
+            "Modules\\Interaction\\Database\\Factories\\": "Modules/Interaction/database/factories/",
+            "Modules\\Interaction\\Database\\Seeders\\": "Modules/Interaction/database/seeders/",
+            "Modules\\Community\\Database\\Factories\\": "Modules/Community/database/factories/",
+            "Modules\\Community\\Database\\Seeders\\": "Modules/Community/database/seeders/",
+            "Database\\Factories\\": "database/factories/",
+            "Database\\Seeders\\": "database/seeders/"
+        }
     },
     "autoload-dev": {
         "psr-4": {
@@ -82,7 +92,7 @@
         }
     },
     "config": {
-        "optimize-autoloader":false,
+        "optimize-autoloader": false,
         "preferred-install": "dist",
         "sort-packages": true,
         "allow-plugins": {

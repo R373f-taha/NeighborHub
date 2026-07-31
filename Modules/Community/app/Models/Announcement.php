@@ -85,4 +85,9 @@ class Announcement extends Model
             'mediable'
         );
     }
+
+    public function getRouteKeyName(): string
+{
+    return 'id';
+}
 }

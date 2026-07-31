@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-
+ 
 namespace Modules\Poll\Database\Seeders;
 
 use Illuminate\Database\Seeder;
@@ -31,12 +31,8 @@ class PollVoteSeeder extends Seeder
                         ->create([
 
                             'poll_id' => $poll->id,
-
-                            'option_id' =>
-                                $options->random()->id,
-
-                            'voter_id' =>
-                                $resident->id,
+                            'option_id' =>$options->random()->id,
+                            'voter_id' =>$resident->id,
 
                         ]);
 
