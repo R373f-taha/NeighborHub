@@ -25,11 +25,12 @@ use Modules\Messaging\app\Models\ConversationParticipant;
 use Modules\Messaging\app\Models\Message;
 use Modules\Notification\app\Models\Notification;
 use Modules\Poll\app\Models\Poll;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable,HasRoles;
 
     /**
      * Safe profile attributes that may be mass assigned.
