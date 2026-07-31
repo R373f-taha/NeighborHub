@@ -27,7 +27,18 @@ class ManagerOrSuperAdminMiddleware
             ], 403);
         }
 
-        $communityId = $request->route('communityId'); 
+         if ($request->user()->hasRole('super_admin')) {
+            return $next($request);
+        }
+
+        if (!$request->user()->hasRole('manager')) {
+            return response()->json([
+                'message' => 'Unauthorized. This action requires Manager or Super Admin role.',
+            ], 403);
+        }
+
+
+        $communityId = $request->route('communityId');
         $community=Community::find($communityId);
         if (!$community && $request->has('community_id')) {
             $community = Community::find($request->community_id);
