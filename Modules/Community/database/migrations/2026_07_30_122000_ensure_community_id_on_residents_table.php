@@ -41,11 +41,11 @@ return new class extends Migration
                    AND COLUMN_NAME = 'community_id'"
             );
 
-            if ($col && strtoupper($col->COLUMN_TYPE) !== 'BIGINT UNSIGNED') {
-                throw new \RuntimeException(
-                    "residents.community_id has unexpected type: {$col->COLUMN_TYPE}"
-                );
-            }
+         if ($col && strtoupper($col->COLUMN_TYPE) !== 'BIGINT(20) UNSIGNED') {
+    throw new \RuntimeException(
+        "residents.community_id has unexpected type: {$col->COLUMN_TYPE}"
+    );
+}
 
             if ($col && strtoupper($col->IS_NULLABLE) === 'YES') {
                 $nullCount = DB::table('residents')->whereNull('community_id')->count();

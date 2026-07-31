@@ -54,7 +54,6 @@ class CommunityPolicy
 
         return false;
     }
-
     public function manageResidents(User $user, Community $community): bool
     {
         if ($user->isSuperAdmin()) {
@@ -67,7 +66,6 @@ class CommunityPolicy
 
         return false;
     }
-
     public function join(User $user, Community $community): bool
     {
         return $user->isResident();

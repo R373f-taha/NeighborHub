@@ -22,18 +22,16 @@ class IssueStatusLogSeeder extends Seeder
             ->each(function (Issue $issue) use ($managers) {
 
 
-                IssueStatusLog::factory()
-                    ->create([
-
-                        'issue_id' => $issue->id,
-
-                        'old_status' => null,
-
-                        'new_status' => $issue->status,
-
-                        'changed_by' => $managers->random()->id,
-
-                    ]);
+                IssueStatusLog::updateOrCreate(
+    [
+        'issue_id' => $issue->id,
+    ],
+    [
+        'old_status' => null,
+        'new_status' => $issue->status,
+        'changed_by' => $managers->random()->id,
+    ]
+);
 
             });
     }

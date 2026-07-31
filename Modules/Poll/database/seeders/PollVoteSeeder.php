@@ -23,24 +23,21 @@ class PollVoteSeeder extends Seeder
 
                 $options = $poll->options;
 
+foreach ($residents->random(10) as $resident) {
 
-                foreach ($residents->random(10) as $resident) {
+    PollVote::updateOrCreate(
+        [
+            'poll_id' => $poll->id,
+            'voter_id' => $resident->id,
+        ],
+        [
+            'option_id' => $options->random()->id,
+            'submitted_at' => now(),
+            'voted_at' => now(),
+        ]
+    );
 
-
-                    PollVote::factory()
-                        ->create([
-
-                            'poll_id' => $poll->id,
-
-                            'option_id' =>
-                                $options->random()->id,
-
-                            'voter_id' =>
-                                $resident->id,
-
-                        ]);
-
-                }
+}
 
             });
     }

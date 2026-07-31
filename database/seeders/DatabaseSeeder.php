@@ -11,15 +11,16 @@ class DatabaseSeeder extends Seeder
         $this->call([
 
             // 1 - Authentication
-            \Modules\Auth\Database\Seeders\DatabaseSeeder::class,
+            \Modules\Auth\Database\Seeders\AuthDatabaseSeeder::class,
 
 
+            
             // 2 - Community
-            \Modules\Community\Database\Seeders\DatabaseSeeder::class,
+            \Modules\Community\Database\Seeders\CommunityDatabaseSeeder::class,
 
 
             // 3 - Posts
-            \Modules\Post\Database\Seeders\DatabaseSeeder::class,
+            \Modules\Post\Database\Seeders\PostDatabaseSeeder::class,
 
 
             // 4 - Service Listings
@@ -35,7 +36,7 @@ class DatabaseSeeder extends Seeder
 
 
             // 7 - Interaction
-            \Modules\Interaction\Database\Seeders\DatabaseSeeder::class,
+            \Modules\Interaction\Database\Seeders\InteractionDatabaseSeeder::class,
 
 
             // 8 - Media

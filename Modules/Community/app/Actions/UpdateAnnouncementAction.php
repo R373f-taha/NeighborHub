@@ -14,7 +14,6 @@ class UpdateAnnouncementAction
         private AnnouncementService $service
     ) {}
 
-
     public function execute(
         Announcement $announcement,
         array $data
