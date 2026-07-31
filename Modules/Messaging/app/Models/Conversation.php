@@ -3,11 +3,14 @@
 namespace Modules\Messaging\app\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Auth\app\Models\User;
 use Modules\Community\app\Models\Community;
+use Modules\Messaging\Database\Factories\ConversationFactory;
 
 class Conversation extends Model
-{  use HasFactory;
+{
+    use HasFactory;
     protected $fillable = ['community_id', 'type', 'status'];
 
 

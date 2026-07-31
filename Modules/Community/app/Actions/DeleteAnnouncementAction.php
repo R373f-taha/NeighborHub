@@ -9,8 +9,7 @@ use Modules\Community\app\Services\AnnouncementService;
 
 class DeleteAnnouncementAction
 {
-
-    public function __construct(
+        public function __construct(
         private AnnouncementService $service
     ) {}
 

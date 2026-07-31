@@ -11,8 +11,8 @@ use Modules\Community\app\Actions\UpdateAnnouncementAction;
 use Modules\Community\app\Http\Requests\V1\ReactAnnouncementRequest;
 use Modules\Community\app\Http\Requests\V1\StoreAnnouncementRequest;
 use Modules\Community\app\Http\Requests\V1\UpdateAnnouncementRequest;
-use Modules\Community\app\Http\Resources\V1\AnnouncementCollection;
-use Modules\Community\app\Http\Resources\V1\AnnouncementResource;
+use Modules\Community\app\Http\Resources\Api\V1\AnnouncementCollection;
+use Modules\Community\app\Http\Resources\Api\V1\AnnouncementResource;
 use Modules\Community\app\Models\Announcement;
 use Modules\Community\app\Repositories\Contracts\AnnouncementRepositoryInterface;
 use Modules\Community\app\Models\Community;
@@ -23,8 +23,6 @@ class AnnouncementController extends Controller
     public function __construct(
         private AnnouncementRepositoryInterface $repository
     ) {}
-
-
 
     public function index(
         int $communityId
@@ -39,9 +37,6 @@ class AnnouncementController extends Controller
                 )
         );
     }
-
-
-
 public function store(
     StoreAnnouncementRequest $request,
     CreateAnnouncementAction $action,
@@ -67,8 +62,6 @@ public function store(
     return new AnnouncementResource($announcement);
 }
 
-
-
     public function show(
         int $communityId,
         Announcement $announcement
@@ -79,15 +72,11 @@ public function store(
 
             $announcement->community_id !== $communityId, 404);
 
-
         $this->authorize( 'view', $announcement );
 
 
         return new AnnouncementResource(  $announcement);
     }
-
-
-
 
 public function update(
     int $communityId,
@@ -96,14 +85,9 @@ public function update(
     UpdateAnnouncementAction $action
 ): JsonResponse {
 
-    $this->authorize(
-        'update',
-        $announcement
-    );
+    $this->authorize('update', $announcement);
 
-    $action->execute(
-        $announcement,
-        $request->validated()
+    $action->execute( $announcement, $request->validated()
     );
 
     return response()->json([

@@ -29,8 +29,6 @@ class CreateAnnouncementAction
             priority: $data['priority'],
             pinnedUntil: $data['pinned_until'] ?? null,
         );
-
-
         return $this->service->create($announcementData);
     }
 }

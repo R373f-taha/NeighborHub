@@ -17,7 +17,6 @@ class ReactToAnnouncementAction
         private AnnouncementService $service
     ) {}
 
-
     public function execute(
         Announcement $announcement,
         User $user,
@@ -35,8 +34,6 @@ class ReactToAnnouncementAction
                     'You already reacted to this announcement.'
             ]);
         }
-
-
         return DB::transaction(function () use (
             $announcement,
             $user,

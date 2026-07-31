@@ -21,10 +21,7 @@ class ConversationParticipantSeeder extends Seeder
             ->each(function (Conversation $conversation) use ($users) {
 
 
-                /*
-                 * كل Conversation يكون فيها
-                 * 2 - 5 مشاركين
-                 */
+
 
                 $participants = $users
                     ->random(rand(2, 5));
@@ -32,19 +29,16 @@ class ConversationParticipantSeeder extends Seeder
 
                 foreach ($participants as $user) {
 
-
-                    ConversationParticipant::create([
-
-                        'conversation_id' => $conversation->id,
-
-                        'user_id' => $user->id,
-
-                        'joined_at' => now(),
-
-                        'left_at' => null,
-
-                    ]);
-
+            ConversationParticipant::updateOrCreate(
+    [
+        'conversation_id' => $conversation->id,
+        'user_id' => $user->id,
+    ],
+    [
+        'joined_at' => now(),
+        'left_at' => null,
+    ]
+);
                 }
 
             });

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Community\app\Http\Resources\V1;
+namespace Modules\Community\app\Http\Resources\Api\V1;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;

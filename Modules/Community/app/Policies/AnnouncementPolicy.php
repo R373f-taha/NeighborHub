@@ -52,7 +52,6 @@ public function create(
     if ($user->isSuperAdmin()) {
         return true;
     }
-
     return $user->isManager()
         && $announcement->created_by_manager === $user->id
         && $user->managedCommunities()
@@ -63,8 +62,6 @@ public function create(
             ->exists();
 }
 
-
-
     public function delete(
         User $user,
         Announcement $announcement): bool {
@@ -74,9 +71,6 @@ public function create(
             $announcement
         );
     }
-
-
-
     public function react(
         User $user,
         Announcement $announcement): bool {
@@ -87,9 +81,6 @@ public function create(
                 $announcement
             );
     }
-
-
-
     private function belongsToCommunity(
         User $user,
         Announcement $announcement
