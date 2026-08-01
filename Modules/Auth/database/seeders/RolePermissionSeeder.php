@@ -54,6 +54,8 @@ class RolePermissionSeeder extends Seeder
             'create_poll',
             'vote_poll',
             'close_poll',
+            // Role management
+            'assign_role',
         ];
 
         foreach ($allPermissions as $permission) {

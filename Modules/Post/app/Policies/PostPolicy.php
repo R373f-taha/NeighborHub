@@ -41,7 +41,7 @@ class PostPolicy
 
     public function delete(User $user, Post $post): bool
     {
-        if ($user->isSuperAdmin()) {
+        if ($user->hasRole('super_admin')) {
             return true;
         }
 
