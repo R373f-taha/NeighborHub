@@ -34,18 +34,31 @@ return new class extends Migration
             });
         } else {
             $col = DB::selectOne(
-                "SELECT COLUMN_TYPE, IS_NULLABLE
+                "SELECT COLUMN_TYPE, DATA_TYPE, IS_NULLABLE
                  FROM information_schema.COLUMNS
                  WHERE TABLE_SCHEMA = DATABASE()
                    AND TABLE_NAME = 'residents'
                    AND COLUMN_NAME = 'community_id'"
             );
 
-         if ($col && strtoupper($col->COLUMN_TYPE) !== 'BIGINT(20) UNSIGNED') {
-    throw new \RuntimeException(
-        "residents.community_id has unexpected type: {$col->COLUMN_TYPE}"
-    );
-}
+            // Validate the semantic type rather than a display-width-formatted
+            // string. MySQL 8.0.17+ omits integer display widths, so COLUMN_TYPE
+            // may be reported as "bigint unsigned" instead of "bigint(20)
+            // unsigned". DATA_TYPE is the stable, display-width-independent type
+            // and is combined with an explicit unsigned check on COLUMN_TYPE so
+            // signed or differently-typed columns are still rejected.
+            if ($col) {
+                $dataType = strtolower((string) $col->DATA_TYPE);
+                $columnType = strtolower((string) $col->COLUMN_TYPE);
+                $isBigintUnsigned = $dataType === 'bigint'
+                    && str_contains($columnType, 'unsigned');
+
+                if (! $isBigintUnsigned) {
+                    throw new \RuntimeException(
+                        "residents.community_id has unexpected type: {$col->COLUMN_TYPE}"
+                    );
+                }
+            }
 
             if ($col && strtoupper($col->IS_NULLABLE) === 'YES') {
                 $nullCount = DB::table('residents')->whereNull('community_id')->count();
