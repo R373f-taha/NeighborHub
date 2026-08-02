@@ -10,43 +10,52 @@ class ManagerOrSuperAdminMiddleware
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!$request->user()) {
+        $user = $request->user();
+
+        // Check authentication
+        if (!$user) {
             return response()->json([
                 'message' => 'Unauthenticated. Please provide a valid token.',
             ], 401);
         }
 
-        if ($request->user()->isSuperAdmin()) {
-            return $request;
+        // Super Admin has full access
+        if ($user->isSuperAdmin()) {
+            return $next($request);
         }
 
-
-        if (!$request->user()->isManager()) {
+        // Check manager role
+        if (!$user->isManager()) {
             return response()->json([
-                'message' => 'Unauthorized. This action requires Manager or super_admin  role.',
+                'message' => 'Unauthorized. This action requires Manager or Super Admin role.',
             ], 403);
         }
 
-        $communityId = $request->route('communityId'); 
-        $community=Community::find($communityId);
-        if (!$community && $request->has('community_id')) {
-            $community = Community::find($request->community_id);
+        // Get community id from route
+        $communityId = $request->route('communityId');
+
+        // Fallback if community_id exists in request body
+        if (!$communityId && $request->has('community_id')) {
+            $communityId = $request->community_id;
         }
 
-        if ($community) {
-            $isManagerOfCommunity = $community->managers()
-                ->where('manager_id', $request->user()->id)
-                ->exists();
+        $community = Community::find($communityId);
 
-            if (!$isManagerOfCommunity) {
-                return response()->json([
-                    'message' => 'Unauthorized. You are not a manager of this community and you are not a super_admin.',
-                ], 403);
-            }
-        } else {
+        if (!$community) {
             return response()->json([
                 'message' => 'Community not found.',
             ], 404);
+        }
+
+        // Check if manager belongs to this community
+        $isManagerOfCommunity = $community->managers()
+            ->where('manager_id', $user->id)
+            ->exists();
+
+        if (!$isManagerOfCommunity) {
+            return response()->json([
+                'message' => 'Unauthorized. You are not a manager of this community.',
+            ], 403);
         }
 
         return $next($request);

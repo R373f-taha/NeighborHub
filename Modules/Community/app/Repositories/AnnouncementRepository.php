@@ -8,9 +8,14 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Modules\Auth\app\Models\User;
 use Modules\Community\app\Models\Announcement;
 use Modules\Community\app\Repositories\Contracts\AnnouncementRepositoryInterface;
+use Modules\Community\app\Traits\AnnouncementCacheableTrait;
 
 class AnnouncementRepository implements AnnouncementRepositoryInterface
 {
+
+    use AnnouncementCacheableTrait;
+
+
 
     public function paginateByCommunity(
         int $communityId,
@@ -38,6 +43,7 @@ class AnnouncementRepository implements AnnouncementRepositoryInterface
             ->latest()
 
             ->paginate($perPage);
+
     }
 
 
@@ -49,26 +55,50 @@ class AnnouncementRepository implements AnnouncementRepositoryInterface
     ): ?Announcement {
 
 
-        return Announcement::query()
+        $key = $this->announcementCacheKey(
+            'single',
+            $communityId,
+            $announcementId
+        );
 
-            ->where(
-                'community_id',
-                $communityId
-            )
 
-            ->with([
-                'creator:id,name,avatar',
-                'comments.author:id,name,avatar',
-                'media',
-            ])
 
-            ->withCount([
-                'reactions',
-                'comments',
-            ])
+        return $this->rememberAnnouncement(
+            $key,
+            self::ANNOUNCEMENT_CACHE_TTL,
+            function () use (
+                $communityId,
+                $announcementId
+            ) {
 
-            ->find($announcementId);
+
+                return Announcement::query()
+
+                    ->where(
+                        'community_id',
+                        $communityId
+                    )
+
+                    ->with([
+                        'creator:id,name,avatar',
+                        'comments.author:id,name,avatar',
+                        'media',
+                    ])
+
+                    ->withCount([
+                        'reactions',
+                        'comments',
+                    ])
+
+                    ->find($announcementId);
+
+
+            },
+            $communityId
+        );
+
     }
+
 
 
 
@@ -77,8 +107,21 @@ class AnnouncementRepository implements AnnouncementRepositoryInterface
         array $data
     ): Announcement {
 
-        return Announcement::create($data);
+
+        $announcement = Announcement::create($data);
+
+
+
+        $this->clearAnnouncementCache(
+            $announcement->community_id
+        );
+
+
+
+        return $announcement;
+
     }
+
 
 
 
@@ -88,8 +131,25 @@ class AnnouncementRepository implements AnnouncementRepositoryInterface
         array $data
     ): bool {
 
-        return $announcement->update($data);
+
+        $updated = $announcement->update($data);
+
+
+
+        if ($updated) {
+
+            $this->clearAnnouncementCache(
+                $announcement->community_id
+            );
+
+        }
+
+
+
+        return $updated;
+
     }
+
 
 
 
@@ -98,8 +158,29 @@ class AnnouncementRepository implements AnnouncementRepositoryInterface
         Announcement $announcement
     ): bool {
 
-        return (bool) $announcement->delete();
+
+        $communityId = $announcement->community_id;
+
+
+
+        $deleted = (bool) $announcement->delete();
+
+
+
+        if ($deleted) {
+
+            $this->clearAnnouncementCache(
+                $communityId
+            );
+
+        }
+
+
+
+        return $deleted;
+
     }
+
 
 
 
@@ -117,5 +198,7 @@ class AnnouncementRepository implements AnnouncementRepositoryInterface
                 $user->id
             )
             ->exists();
+
     }
+
 }

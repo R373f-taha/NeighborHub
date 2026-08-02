@@ -17,6 +17,9 @@ use Modules\Community\app\Http\Middleware\ManagerOrSuperAdminMiddleware;
 use Modules\Community\app\Http\Middleware\ResidentMiddleware;
 use Modules\Community\app\Http\Middleware\SuperAdminMiddleware;
 use Modules\Community\app\Http\Middleware\ProviderMiddleware;
+use Modules\Community\app\Models\Announcement;
+use Modules\Community\app\Policies\AnnouncementPolicy;
+
 
 class CommunityServiceProvider extends ServiceProvider
 {
@@ -39,6 +42,9 @@ class CommunityServiceProvider extends ServiceProvider
         $this->loadRoutesFrom(module_path($this->moduleName, 'Routes/api.php'));
 
         Gate::policy(Community::class, CommunityPolicy::class);
+        Gate::policy(Announcement::class, AnnouncementPolicy::class);
+
+
 
         $this->registerMiddleware();
     }

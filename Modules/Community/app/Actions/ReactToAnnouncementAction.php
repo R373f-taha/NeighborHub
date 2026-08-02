@@ -13,9 +13,12 @@ use Modules\Interaction\app\Models\Reaction;
 
 class ReactToAnnouncementAction
 {
+
     public function __construct(
         private AnnouncementService $service
     ) {}
+
+
 
     public function execute(
         Announcement $announcement,
@@ -24,28 +27,48 @@ class ReactToAnnouncementAction
     ): Reaction {
 
 
-        if ($this->service->hasUserReacted(
-            $announcement,
-            $user
-        )) {
-
-            throw ValidationException::withMessages([
-                'reaction' =>
-                    'You already reacted to this announcement.'
-            ]);
-        }
         return DB::transaction(function () use (
             $announcement,
             $user,
             $type
         ) {
 
+
+            $alreadyReacted =
+                $announcement
+                    ->reactions()
+                    ->where(
+                        'user_id',
+                        $user->id
+                    )
+                    ->lockForUpdate()
+                    ->exists();
+
+
+
+            if ($alreadyReacted) {
+
+
+                throw ValidationException::withMessages([
+                    'reaction' =>
+                        'You already reacted to this announcement.'
+                ]);
+
+            }
+
+
+
+
+
             return $announcement
                 ->reactions()
                 ->create([
-                    'user_id' => $user->id,
-                    'type' => $type,
+                    'user_id'=>$user->id,
+                    'type'=>$type,
                 ]);
+
         });
+
     }
+
 }
