@@ -55,7 +55,7 @@ class CommentPolicy
 
         $community = $post->community;
 
-        if ($user->isSuperAdmin()) {
+        if ($user->hasRole('super_admin')) {
             return true;
         }
 
