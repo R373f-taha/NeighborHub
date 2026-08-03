@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\Auth\app\Http\Controllers\AuthController;
 use Modules\Auth\app\Http\Controllers\PasswordController;
+use Modules\Auth\app\Http\Controllers\UserRoleController;
 use Modules\Auth\app\Http\Middleware\EnsureUserIsActive;
 
 Route::prefix('v1')->group(function (): void {
@@ -35,4 +36,12 @@ Route::prefix('v1')->group(function (): void {
                 ->middleware(EnsureUserIsActive::class);
         });
     });
+
+    Route::middleware(['auth:sanctum', EnsureUserIsActive::class])
+        ->prefix('users')
+        ->name('users.')
+        ->controller(UserRoleController::class)
+        ->group(function (): void {
+            Route::patch('{user}/role', 'update')->name('role.update');
+        });
 });

@@ -5,7 +5,10 @@ namespace Modules\Auth\app\Providers;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
+use Modules\Auth\app\Models\User;
+use Modules\Auth\app\Policies\UserPolicy;
 use Modules\Auth\app\Support\AuthSecurityLogger;
 use Nwidart\Modules\Support\ModuleServiceProvider;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,6 +27,8 @@ class AuthServiceProvider extends ModuleServiceProvider
     public function boot(): void
     {
         parent::boot();
+
+        Gate::policy(User::class, UserPolicy::class);
 
         ResetPassword::createUrlUsing(function ($notifiable, string $token): string {
             $base = rtrim((string) (config('auth.password_reset_url') ?: config('app.url')), '/');
