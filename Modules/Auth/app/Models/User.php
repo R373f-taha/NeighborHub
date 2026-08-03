@@ -188,4 +188,5 @@ class User extends Authenticatable
     {
         return $this->hasMany(Announcement::class, 'created_by_manager');
     }
+
 }
