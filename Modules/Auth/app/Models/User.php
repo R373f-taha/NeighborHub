@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 namespace Modules\Auth\app\Models;
-use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -190,4 +189,5 @@ class User extends Authenticatable
     {
         return $this->hasMany(Announcement::class, 'created_by_manager');
     }
+
 }
