@@ -61,46 +61,11 @@ class AnnouncementPolicy
             );
     }
 
-    /**
-     * Determine whether the user can update an announcement.
-     */
 
-    // public function update(
-    //     User $user,
-    //     Announcement $announcement
-    // ): bool {
-    //     if (! $user->can('update_announcement')) {
-    //         return false;
-    //     }
-
-    //     if ($user->isSuperAdmin()) {
-    //         return true;
-    //     }
-
-    //     return $user->isManager()
-    //         && (int) $announcement->created_by_manager === (int) $user->id
-    //         && $this->managesCommunity(
-    //             $user,
-    //             (int) $announcement->community_id
-    //         );
-    // }
-    public function update(
+ public function update(
     User $user,
     Announcement $announcement
 ): bool {
-
-    \Log::info('UPDATE POLICY CHECK', [
-        'user_id' => $user->id,
-        'is_manager' => $user->isManager(),
-        'permission' => $user->can('update_announcement'),
-        'announcement_id' => $announcement->id,
-        'creator_id' => $announcement->created_by_manager,
-        'community_id' => $announcement->community_id,
-        'manages' => $this->managesCommunity(
-            $user,
-            (int) $announcement->community_id
-        ),
-    ]);
 
     if (! $user->can('update_announcement')) {
         return false;
@@ -125,19 +90,6 @@ class AnnouncementPolicy
     User $user,
     Announcement $announcement
 ): bool {
-
-    \Log::info('DELETE POLICY CHECK', [
-        'user_id' => $user->id,
-        'is_manager' => $user->isManager(),
-        'permission' => $user->can('delete_announcement'),
-        'announcement_id' => $announcement->id,
-        'creator_id' => $announcement->created_by_manager,
-        'community_id' => $announcement->community_id,
-        'manages' => $this->managesCommunity(
-            $user,
-            (int) $announcement->community_id
-        ),
-    ]);
 
     if (! $user->can('delete_announcement')) {
         return false;
