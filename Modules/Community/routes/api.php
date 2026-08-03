@@ -51,12 +51,10 @@ Route::middleware([
                     'throttle:60,60',
                 ]);
 
-            Route::put(
+  Route::put(
     'announcements/{announcement}',
     [AnnouncementController::class, 'update']
-)
-->scopeBindings()
-->middleware([
+)->middleware([
     'manager.or.super.admin',
     'can:update_announcement',
     'throttle:20,60',
@@ -66,6 +64,7 @@ Route::delete(
     [AnnouncementController::class, 'destroy']
 )->middleware([
     'manager.or.super.admin',
+    'can:delete_announcement',
     'throttle:10,60',
 ]);
 

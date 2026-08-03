@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 namespace Modules\Auth\app\Models;
-
+use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -29,7 +29,7 @@ use Modules\Poll\app\Models\Poll;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens,HasRoles, HasFactory, Notifiable;
 
     /**
      * Safe profile attributes that may be mass assigned.

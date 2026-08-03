@@ -21,13 +21,21 @@ class UserFactory extends Factory
     /**
      * @return array<string, mixed>
      */
+
+  public function configure(): static
+{
+    return $this->afterCreating(function (User $user) {
+        if ($user->role instanceof UserRole) {
+            $user->assignRole($user->role->value);
+        }
+    });
+}
     public function definition(): array
     {
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
 
-            // سيتم تشفيرها تلقائياً بواسطة cast في الـ Model
             'password' => 'password',
 
             'role' => UserRole::Resident,
