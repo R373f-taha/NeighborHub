@@ -56,7 +56,13 @@ class RolePermissionSeeder extends Seeder
             'create_poll',
             'vote_poll',
             'close_poll',
-            // Role management
+
+            //Announcement
+            'view_announcements',
+            'create_announcement',
+            'update_announcement',
+            'delete_announcement',
+            'react_announcement',
             'assign_role',
           "view_poll_result"
         ];
@@ -98,7 +104,12 @@ class RolePermissionSeeder extends Seeder
             'view_polls',
             'create_poll',
             'close_poll',
-           "view_poll_result"
+           "view_poll_result",
+            'view_announcements',
+            'create_announcement',
+            'update_announcement',
+            'delete_announcement',
+
         ]);
 
         // 🏠 Resident
@@ -115,6 +126,10 @@ class RolePermissionSeeder extends Seeder
             'view_polls',
             'vote_poll',
             'join_community',
+
+            'view_announcements',
+            'react_announcement',
+
         ]);
 
         // 🔧 Provider
@@ -195,5 +210,6 @@ class RolePermissionSeeder extends Seeder
         $this->command->info('✅ Permissions seeded: ' . Permission::count());
         $this->command->info('✅ Roles seeded: ' . Role::count());
         $this->command->info('✅ Users seeded: ' . User::count());
+
     }
 }

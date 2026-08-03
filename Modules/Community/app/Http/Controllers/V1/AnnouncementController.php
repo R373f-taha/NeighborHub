@@ -45,10 +45,7 @@ public function store(
 
     $community = Community::findOrFail($communityId);
 
-    $this->authorize(
-        'create',
-        $community
-    );
+  $this->authorize('create', [Announcement::class, $community]);
 
     $data = $request->validated();
 
@@ -62,32 +59,39 @@ public function store(
     return new AnnouncementResource($announcement);
 }
 
-    public function show(
-        int $communityId,
-        Announcement $announcement
-    ): AnnouncementResource {
+public function show(
+    int $communityId,
+    $announcement
+): AnnouncementResource {
+
+    $announcement = Announcement::findOrFail($announcement);
+
+    abort_if(
+        (int) $announcement->community_id !== (int) $communityId,
+        404
+    );
+
+    $this->authorize('view', $announcement);
+
+    return new AnnouncementResource($announcement);
+}
 
 
-        abort_if(
-
-            $announcement->community_id !== $communityId, 404);
-
-        $this->authorize( 'view', $announcement );
-
-
-        return new AnnouncementResource(  $announcement);
-    }
 
 public function update(
     int $communityId,
-    Announcement $announcement,
+    int $announcement,
     UpdateAnnouncementRequest $request,
     UpdateAnnouncementAction $action
 ): JsonResponse {
 
+    $announcement = Announcement::findOrFail($announcement);
+
     $this->authorize('update', $announcement);
 
-    $action->execute( $announcement, $request->validated()
+    $action->execute(
+        $announcement,
+        $request->validated()
     );
 
     return response()->json([
@@ -95,34 +99,25 @@ public function update(
     ]);
 }
 
+public function destroy(
+    int $communityId,
+    int $announcement,
+    DeleteAnnouncementAction $action
+): JsonResponse {
 
+    $announcement = Announcement::findOrFail($announcement);
 
+    $this->authorize(
+        'delete',
+        $announcement
+    );
 
-    public function destroy(
-         int $communityId,
-        Announcement $announcement,
-        DeleteAnnouncementAction $action
-    ): JsonResponse {
+    $action->execute($announcement);
 
-
-        $this->authorize(
-            'delete',
-            $announcement
-        );
-
-
-        $action->execute(
-            $announcement
-        );
-
-
-        return response()->json([
-
-            'message' => 'Announcement deleted successfully'
-
-        ]);
-    }
-
+    return response()->json([
+        'message' => 'Announcement deleted successfully'
+    ]);
+}
    public function react(
     int $communityId,
     Announcement $announcement,

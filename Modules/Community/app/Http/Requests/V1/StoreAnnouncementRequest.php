@@ -14,49 +14,6 @@ public function authorize(): bool
     return true;
 }
 
-// public function authorize(): bool
-// {
-//     $user = $this->user();
-
-//     if (! $user) {
-//         return false;
-//     }
-
-//     if ($user->isSuperAdmin()) {
-//         return true;
-//     }
-
-//     return $user->isManager()
-//         && $user->managedCommunities()
-//             ->where(
-//                 'communities.id',
-//                 $this->route('communityId')
-//             )
-//             ->exists();
-// }
-
-// public function authorize(): bool
-// {
-//     $user = $this->user();
-
-//     if (! $user) {
-//         return false;
-//     }
-
-//     // SuperAdmin can create announcements everywhere
-//     if ($user->isSuperAdmin()) {
-//         return true;
-//     }
-
-//     // Manager only for communities he manages
-//     return $user->isManager()
-//         && $user->managedCommunities()
-//             ->where(
-//                 'communities.id',
-//                 $this->community_id
-//             )
-//             ->exists();
-// }
 
 
     public function rules(): array
