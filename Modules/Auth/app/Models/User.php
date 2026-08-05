@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 namespace Modules\Auth\app\Models;
-use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -25,11 +24,14 @@ use Modules\Messaging\app\Models\ConversationParticipant;
 use Modules\Messaging\app\Models\Message;
 use Modules\Notification\app\Models\Notification;
 use Modules\Poll\app\Models\Poll;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
+
     use HasApiTokens,HasRoles, HasFactory, Notifiable;
+
 
     /**
      * Safe profile attributes that may be mass assigned.
@@ -187,4 +189,5 @@ class User extends Authenticatable
     {
         return $this->hasMany(Announcement::class, 'created_by_manager');
     }
+
 }

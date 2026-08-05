@@ -39,7 +39,7 @@ class CommunityServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
-        $this->loadRoutesFrom(module_path($this->moduleName, 'Routes/api.php'));
+        $this->loadRoutesFrom(module_path($this->moduleName, 'routes/api.php'));
 
         Gate::policy(Community::class, CommunityPolicy::class);
         Gate::policy(Announcement::class, AnnouncementPolicy::class);

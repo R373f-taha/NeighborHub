@@ -7,7 +7,6 @@ namespace Modules\Post\app\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Gate;
 use Modules\Community\app\Models\Community;
 use Modules\Post\app\Http\Requests\Api\V1\StorePostRequest;
@@ -26,7 +25,7 @@ class PostController extends Controller
         private ModerationLogger $logger,
     ) {}
 
-    public function index(Request $request, Community $community): AnonymousResourceCollection
+    public function index(Request $request, Community $community): JsonResponse
     {
         Gate::authorize('viewAny', [Post::class, $community]);
 
@@ -35,7 +34,7 @@ class PostController extends Controller
 
         return PostResource::collection(
             $this->posts->index($community, $category, $perPage)
-        );
+        )->additional(['message' => 'Posts retrieved successfully.'])->response();
     }
 
     public function store(StorePostRequest $request, Community $community): JsonResponse
@@ -44,23 +43,30 @@ class PostController extends Controller
 
         $post = $this->posts->store($community, $request->user(), $request->validated());
 
-        return (new PostResource($post))
-            ->response()
-            ->setStatusCode(201);
+        return response()->json([
+            'message' => 'Post created successfully.',
+            'data' => new PostResource($post),
+        ], 201);
     }
 
-    public function show(Community $community, Post $post): PostResource
+    public function show(Community $community, Post $post): JsonResponse
     {
         Gate::authorize('view', $post);
 
-        return new PostResource($this->posts->show($post));
+        return response()->json([
+            'message' => 'Post retrieved successfully.',
+            'data' => new PostResource($this->posts->show($post)),
+        ]);
     }
 
-    public function update(UpdatePostRequest $request, Community $community, Post $post): PostResource
+    public function update(UpdatePostRequest $request, Community $community, Post $post): JsonResponse
     {
         Gate::authorize('update', $post);
 
-        return new PostResource($this->posts->update($post, $request->validated()));
+        return response()->json([
+            'message' => 'Post updated successfully.',
+            'data' => new PostResource($this->posts->update($post, $request->validated())),
+        ]);
     }
 
     public function destroy(Request $request, Community $community, Post $post): JsonResponse
@@ -82,6 +88,9 @@ class PostController extends Controller
 
         $this->posts->delete($post);
 
-        return response()->json(null, 204);
+        return response()->json([
+            'message' => 'Post deleted successfully.',
+            'data' => null,
+        ], 200);
     }
 }

@@ -27,9 +27,16 @@ class ReactionController extends Controller
 
         $status = $result['action'] === 'created' ? 201 : 200;
 
-        return ReactionResource::fromToggle($result)
-            ->response()
-            ->setStatusCode($status);
+        $message = match ($result['action']) {
+            'created' => 'Reaction added successfully.',
+            'updated' => 'Reaction updated successfully.',
+            'removed' => 'Reaction removed successfully.',
+        };
+
+        return response()->json([
+            'message' => $message,
+            'data' => ReactionResource::fromToggle($result)->resolve($request),
+        ], $status);
     }
 }
 

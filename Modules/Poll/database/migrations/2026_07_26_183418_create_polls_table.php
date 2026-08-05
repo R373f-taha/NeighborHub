@@ -14,12 +14,11 @@ return new class extends Migration
             $table->foreignId('created_by')->constrained('users')->cascadeOnDelete();
             $table->string('title');
             $table->text('description')->nullable();
-            $table->enum('type', ['single_choice', 'multiple_choice']);
+            $table->enum('type', ['single_choice'])->default('single_choice');
             $table->enum('status', ['draft', 'active', 'closed'])->default('draft');
             $table->timestamp('ends_at');
             $table->timestamp('activated_at')->nullable();
             $table->timestamp('closed_at')->nullable();
-            $table->foreignId('colsed_by_manager')->constrained('users')->cascadeOnDelete();
             $table->timestamps();
 
             $table->index(['community_id', 'status']);
