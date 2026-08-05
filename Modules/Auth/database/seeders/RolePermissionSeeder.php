@@ -45,12 +45,17 @@ class RolePermissionSeeder extends Seeder
             'update_post',
             'delete_post',
             'pin_post',
-            // Issues
-            'view_issues',
-            'create_issue',
-            'update_issue',
-            'assign_issue',
-            'resolve_issue',
+      // Issues
+'view_issues',
+'create_issue',
+'update_issue',
+'delete_issue',
+'assign_issue',
+'update_issue_status',
+'resolve_issue',
+'add_issue_update',
+'comment_issue',
+
             // Polls
             'view_polls',
             'create_poll',
@@ -68,10 +73,13 @@ class RolePermissionSeeder extends Seeder
         ];
 
         foreach ($allPermissions as $permission) {
-            Permission::firstOrCreate(
-                ['name' => $permission, 'guard_name' => $guard]
-            );
+
+            Permission::updateOrCreate(['name' => $permission, 'guard_name' => 'web']);
+
+         
+
         }
+
 
         // ============================================================
         // 3. CREATE ROLES (with guard)
@@ -84,9 +92,9 @@ class RolePermissionSeeder extends Seeder
         $roleSuperAdmin->syncPermissions($allPermissions);
 
         // 🏢 Manager
-        $roleManager = Role::firstOrCreate(
-            ['name' => 'manager', 'guard_name' => $guard]
-        );
+
+        $roleManager = Role::updateOrCreate(['name' => 'manager']);
+
         $roleManager->syncPermissions([
             'view_communities',
             'update_community',
@@ -98,9 +106,16 @@ class RolePermissionSeeder extends Seeder
             'view_posts',
             'pin_post',
             'delete_post',
-            'view_issues',
-            'assign_issue',
-            'resolve_issue',
+
+         'view_issues',
+         'assign_issue',
+          'update_issue',
+         'update_issue_status',
+     'add_issue_update',
+        'resolve_issue',
+        'delete_issue',
+        'comment_issue',
+
             'view_polls',
             'create_poll',
             'close_poll',
@@ -113,16 +128,19 @@ class RolePermissionSeeder extends Seeder
         ]);
 
         // 🏠 Resident
-        $roleResident = Role::firstOrCreate(
-            ['name' => 'resident', 'guard_name' => $guard]
-        );
+
+        $roleResident = Role::updateOrCreate(['name' => 'resident']);
+
         $roleResident->syncPermissions([
             'view_communities',
             'view_posts',
             'create_post',
             'update_post',
+
             'view_issues',
             'create_issue',
+            'update_issue',
+            'comment_issue',
             'view_polls',
             'vote_poll',
             'join_community',
@@ -133,14 +151,16 @@ class RolePermissionSeeder extends Seeder
         ]);
 
         // 🔧 Provider
-        $roleProvider = Role::firstOrCreate(
-            ['name' => 'provider', 'guard_name' => $guard]
-        );
+
+        $roleProvider = Role::updateOrCreate(['name' => 'provider']);
+
         $roleProvider->syncPermissions([
             'view_issues',
-            'update_issue',
+            'update_issue_status',
             'resolve_issue',
+              'add_issue_update',
             'view_polls',
+
         ]);
 
         // ============================================================

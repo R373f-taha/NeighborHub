@@ -1,92 +1,41 @@
 <?php
 
-declare(strict_types=1);
-
 namespace Modules\Issue\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Modules\Auth\app\Models\User;
-use Modules\Community\app\Models\Community;
-use Modules\Issue\app\Models\Issue;
 
-/**
- * @extends Factory<Issue>
- */
+use Modules\Issue\app\Models\Issue;
+use Modules\Issue\app\Models\IssueCategory;
+use Modules\Issue\app\Enums\IssueStatus;
+use Modules\Issue\app\Enums\IssuePriority;
+use Modules\Community\app\Models\Community;
+use Modules\Auth\app\Models\User;
 class IssueFactory extends Factory
 {
     protected $model = Issue::class;
 
-
     public function definition(): array
     {
         return [
-
             'community_id' => Community::factory(),
 
-            'title' => fake()->sentence(5),
+            'category_id' => IssueCategory::factory(),
 
-            'description' => fake()->paragraph(3),
+            'title' => fake()->sentence(),
 
-            'category' => fake()->randomElement([
-                'maintenance',
-                'security',
-                'cleaning',
-                'noise',
-                'parking',
-                'other',
-            ]),
+            'description' => fake()->paragraph(),
 
-            'location' => fake()->randomElement([
-                'Building A',
-                'Building B',
-                'Entrance',
-                'Parking',
-                'Garden',
-            ]),
+            'location' => fake()->address(),
 
-            'priority' => fake()->randomElement([
-                'low',
-                'medium',
-                'high',
-                'urgent',
-            ]),
+            'priority' => fake()->randomElement(
+                IssuePriority::cases()
+            ),
 
-            'status' => fake()->randomElement([
-                'open',
-                'assigned',
-                'in_progress',
-                'resolved',
-                'closed',
-            ]),
+            'status' => IssueStatus::OPEN,
 
-            'reported_by' => User::factory()->resident(),
+            'reported_by' => User::factory(),
 
             'assigned_to' => null,
         ];
-    }
-
-
-    public function open(): static
-    {
-        return $this->state(fn () => [
-            'status' => 'open',
-        ]);
-    }
-
-
-    public function urgent(): static
-    {
-        return $this->state(fn () => [
-            'priority' => 'urgent',
-        ]);
-    }
-
-
-    public function assigned(): static
-    {
-        return $this->state(fn () => [
-            'status' => 'assigned',
-            'assigned_to' => User::factory()->manager(),
-        ]);
     }
 }
