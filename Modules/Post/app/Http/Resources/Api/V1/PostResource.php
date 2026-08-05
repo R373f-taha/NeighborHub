@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Modules\Post\app\Http\Resources\Api\V1;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use Modules\Media\app\Http\Resources\Api\V1\MediaResource;
 use Modules\Post\app\Models\Post;
 
 /** @mixin Post */
@@ -31,6 +32,7 @@ class PostResource extends JsonResource
 
                 return $author;
             }),
+            'media' => MediaResource::collection($this->whenLoaded('media')),
             $this->mergeWhen($this->resource->getAttribute('comments_count') !== null, fn () => [
                 'comments_count' => (int) $this->resource->getAttribute('comments_count'),
             ]),

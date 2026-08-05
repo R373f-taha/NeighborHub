@@ -16,7 +16,7 @@ class PostService
     public function index(Community $community, ?string $category = null, int $perPage = 15): LengthAwarePaginator
     {
         $query = Post::where('community_id', $community->id)
-            ->with(['author.user:id,name'])
+            ->with(['author.user:id,name', 'media'])
             ->withCount('comments')
             ->orderByDesc('created_at')
             ->orderByDesc('id');
@@ -30,7 +30,7 @@ class PostService
 
     public function show(Post $post): Post
     {
-        return $post->loadMissing(['author.user:id,name'])
+        return $post->loadMissing(['author.user:id,name', 'media'])
             ->loadCount('comments');
     }
 
@@ -45,14 +45,14 @@ class PostService
             'content' => $validated['content'],
         ]);
 
-        return $post->load('author.user:id,name')->loadCount('comments');
+        return $post->load(['author.user:id,name', 'media'])->loadCount('comments');
     }
 
     public function update(Post $post, array $validated): Post
     {
         $post->update($validated);
 
-        return $post->load('author.user:id,name')->loadCount('comments');
+        return $post->load(['author.user:id,name', 'media'])->loadCount('comments');
     }
 
     public function delete(Post $post): void

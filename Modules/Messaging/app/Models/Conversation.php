@@ -11,6 +11,9 @@ use Modules\Messaging\Database\Factories\ConversationFactory;
 class Conversation extends Model
 {
     use HasFactory;
+
+    // community_id / type / status are set server-side by Messaging services
+    // and are never accepted from unchecked client input.
     protected $fillable = ['community_id', 'type', 'status'];
 
 

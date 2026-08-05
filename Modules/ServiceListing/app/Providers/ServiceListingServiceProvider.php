@@ -4,6 +4,9 @@ namespace Modules\ServiceListing\app\Providers;
 
 use Nwidart\Modules\Support\ModuleServiceProvider;
 use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\Facades\Gate;
+use Modules\ServiceListing\app\Models\ServiceListing;
+use Modules\ServiceListing\app\Policies\ServiceListingPolicy;
 
 class ServiceListingServiceProvider extends ModuleServiceProvider
 {
@@ -34,11 +37,14 @@ class ServiceListingServiceProvider extends ModuleServiceProvider
         RouteServiceProvider::class,
     ];
 
-    /**
-     * Define module schedules.
-     *
-     * @param $schedule
-     */
+    public function boot(): void
+    {
+        parent::boot();
+
+        Gate::policy(ServiceListing::class, ServiceListingPolicy::class);
+    }
+
+  
     // protected function configureSchedules(Schedule $schedule): void
     // {
     //     $schedule->command('inspire')->hourly();
