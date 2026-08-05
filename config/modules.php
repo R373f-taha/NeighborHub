@@ -295,7 +295,7 @@ return [
          * load files on boot or register method
          */
         'files' => 'register',
-        'on'=>false
+        'on'=>true,
     ],
 
     /*

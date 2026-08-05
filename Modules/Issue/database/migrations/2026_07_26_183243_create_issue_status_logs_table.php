@@ -8,9 +8,9 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('issue_status_log', function (Blueprint $table) {
+        Schema::create('issue_status_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('issue_id')->unique()->constrained('issues')->cascadeOnDelete();
+            $table->foreignId('issue_id')->constrained('issues')->cascadeOnDelete();
             $table->enum('old_status', ['open', 'assigned', 'in_progress', 'resolved', 'closed'])->nullable();
             $table->enum('new_status', ['open', 'assigned', 'in_progress', 'resolved', 'closed']);
             $table->foreignId('changed_by')->constrained('users')->cascadeOnDelete();

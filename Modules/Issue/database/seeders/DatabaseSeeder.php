@@ -13,8 +13,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
 
             IssueSeeder::class,
-
             IssueStatusLogSeeder::class,
+            IssueCategorySeeder::class,
 
         ]);
     }

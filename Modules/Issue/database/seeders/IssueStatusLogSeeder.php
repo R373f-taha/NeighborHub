@@ -13,26 +13,36 @@ class IssueStatusLogSeeder extends Seeder
 {
     public function run(): void
     {
-        $managers = User::query()
-            ->where('role', 'manager')
-            ->get();
+
+        $managers = User::role('manager')->get();
+
+
+        if ($managers->isEmpty()) {
+            return;
+        }
+
 
 
         Issue::query()
             ->each(function (Issue $issue) use ($managers) {
 
 
-                IssueStatusLog::updateOrCreate(
-    [
-        'issue_id' => $issue->id,
-    ],
-    [
-        'old_status' => null,
-        'new_status' => $issue->status,
-        'changed_by' => $managers->random()->id,
-    ]
-);
+                IssueStatusLog::create([
+
+                    'issue_id' => $issue->id,
+
+                    'old_status' => null,
+
+                    'new_status' => $issue->status,
+
+                    'changed_by' => $managers->random()->id,
+
+                    'note' => 'Initial issue status',
+
+                ]);
+
 
             });
+
     }
 }

@@ -7,48 +7,53 @@ namespace Modules\Auth\Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Auth\app\Enums\UserRole;
 use Modules\Auth\app\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 /**
  * @extends Factory<User>
  */
 class UserFactory extends Factory
 {
-    /**
-     * @var class-string<User>
-     */
     protected $model = User::class;
 
-    /**
-     * @return array<string, mixed>
-     */
 
-  public function configure(): static
-{
-    return $this->afterCreating(function (User $user) {
-        if ($user->role instanceof UserRole) {
-            $user->assignRole($user->role->value);
-        }
-    });
-}
+    public function configure(): static
+    {
+        return $this->afterCreating(function (User $user) {
+
+            if ($user->role instanceof UserRole) {
+
+                $user->assignRole(
+                    $user->role->value
+                );
+
+            }
+
+        });
+    }
+
+
     public function definition(): array
     {
         return [
             'name' => fake()->name(),
+
             'email' => fake()->unique()->safeEmail(),
 
-            'password' => 'password',
+            'password' => Hash::make('password'),
 
             'role' => UserRole::Resident,
 
             'phone' => fake()->phoneNumber(),
 
-            'avatar' => fake()->imageUrl(300, 300, 'people'),
+            'avatar' => null,
 
             'is_active' => true,
 
             'email_verified_at' => now(),
         ];
     }
+
 
     public function superAdmin(): static
     {
@@ -57,12 +62,14 @@ class UserFactory extends Factory
         ]);
     }
 
+
     public function manager(): static
     {
         return $this->state(fn () => [
             'role' => UserRole::Manager,
         ]);
     }
+
 
     public function resident(): static
     {
@@ -71,6 +78,7 @@ class UserFactory extends Factory
         ]);
     }
 
+
     public function provider(): static
     {
         return $this->state(fn () => [
@@ -78,12 +86,14 @@ class UserFactory extends Factory
         ]);
     }
 
+
     public function inactive(): static
     {
         return $this->state(fn () => [
             'is_active' => false,
         ]);
     }
+
 
     public function unverified(): static
     {

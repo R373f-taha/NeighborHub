@@ -1,46 +1,42 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Issue\app\Providers;
 
-use Nwidart\Modules\Support\ModuleServiceProvider;
-use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Route;
 
-class IssueServiceProvider extends ModuleServiceProvider
+use Modules\Issue\app\Models\Issue;
+use Modules\Issue\app\Models\IssueCategory;
+use Modules\Issue\app\Observers\IssueObserver;
+
+use Modules\Issue\app\Repositories\Contracts\IssueRepositoryInterface;
+use Modules\Issue\app\Repositories\IssueRepository;
+
+
+class IssueServiceProvider extends ServiceProvider
 {
-    /**
-     * The name of the module.
-     */
-    protected string $name = 'Issue';
 
-    /**
-     * The lowercase version of the module name.
-     */
-    protected string $nameLower = 'issue';
+    public function register(): void
+    {
+        $this->app->bind(
+            IssueRepositoryInterface::class,
+            IssueRepository::class
+        );
+    }
 
-    /**
-     * Command classes to register.
-     *
-     * @var string[]
-     */
-    // protected array $commands = [];
 
-    /**
-     * Provider classes to register.
-     *
-     * @var string[]
-     */
-    protected array $providers = [
-        EventServiceProvider::class,
-        RouteServiceProvider::class,
-    ];
+public function boot(): void
+{
+    $this->loadRoutesFrom(
+        module_path('Issue', 'routes/api.php')
+    );
 
-    /**
-     * Define module schedules.
-     *
-     * @param $schedule
-     */
-    // protected function configureSchedules(Schedule $schedule): void
-    // {
-    //     $schedule->command('inspire')->hourly();
-    // }
+    Issue::observe(IssueObserver::class);
+
+    Route::model('issue', Issue::class);
+    Route::model('category', IssueCategory::class);
+}
+
 }
