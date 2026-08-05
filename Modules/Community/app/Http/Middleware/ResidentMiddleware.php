@@ -14,11 +14,7 @@ class ResidentMiddleware
                 'message' => 'Unauthenticated. Please provide a valid token.',
             ], 401);
         }
-       if (!$request->user()->hasRole('resident')) {
-            return response()->json([
-                'message' => 'Unauthorized. This action requires Resident role.',
-            ], 403);
-        }
+ 
         if (!$request->user()->isResident()) {
             return response()->json([
                 'message' => 'Unauthorized. This action requires Resident role.',

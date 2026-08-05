@@ -21,8 +21,10 @@ class RolePermissionSeeder extends Seeder
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
         // ============================================================
-        // 2. CREATE PERMISSIONS
+        // 2. CREATE PERMISSIONS (with guard)
         // ============================================================
+
+        $guard = 'api';  // ✅ حدد الـ guard
 
         $allPermissions = [
             // Community
@@ -43,36 +45,57 @@ class RolePermissionSeeder extends Seeder
             'update_post',
             'delete_post',
             'pin_post',
-            // Issues
-            'view_issues',
-            'create_issue',
-            'update_issue',
-            'assign_issue',
-            'resolve_issue',
+      // Issues
+'view_issues',
+'create_issue',
+'update_issue',
+'delete_issue',
+'assign_issue',
+'update_issue_status',
+'resolve_issue',
+'add_issue_update',
+'comment_issue',
+
             // Polls
             'view_polls',
             'create_poll',
             'vote_poll',
             'close_poll',
-            // Role management
+
+            //Announcement
+            'view_announcements',
+            'create_announcement',
+            'update_announcement',
+            'delete_announcement',
+            'react_announcement',
             'assign_role',
+          "view_poll_result"
         ];
 
         foreach ($allPermissions as $permission) {
-            Permission::updateOrCreate(['name' => $permission]);
+
+            Permission::updateOrCreate(['name' => $permission, 'guard_name' => 'web']);
+
+         
+
         }
 
+
         // ============================================================
-        // 3. CREATE ROLES
+        // 3. CREATE ROLES (with guard)
         // ============================================================
 
         // 👑 Super Admin
-        $roleSuperAdmin = Role::updateOrCreate(['name' => 'super_admin']);
-        $roleSuperAdmin->givePermissionTo($allPermissions);
+        $roleSuperAdmin = Role::firstOrCreate(
+            ['name' => 'super_admin', 'guard_name' => $guard]
+        );
+        $roleSuperAdmin->syncPermissions($allPermissions);
 
         // 🏢 Manager
+
         $roleManager = Role::updateOrCreate(['name' => 'manager']);
-        $roleManager->givePermissionTo([
+
+        $roleManager->syncPermissions([
             'view_communities',
             'update_community',
             'view_community_stats',
@@ -83,34 +106,61 @@ class RolePermissionSeeder extends Seeder
             'view_posts',
             'pin_post',
             'delete_post',
-            'view_issues',
-            'assign_issue',
-            'resolve_issue',
+
+         'view_issues',
+         'assign_issue',
+          'update_issue',
+         'update_issue_status',
+     'add_issue_update',
+        'resolve_issue',
+        'delete_issue',
+        'comment_issue',
+
             'view_polls',
             'create_poll',
             'close_poll',
+           "view_poll_result",
+            'view_announcements',
+            'create_announcement',
+            'update_announcement',
+            'delete_announcement',
+
         ]);
 
         // 🏠 Resident
+
         $roleResident = Role::updateOrCreate(['name' => 'resident']);
-        $roleResident->givePermissionTo([
+
+        $roleResident->syncPermissions([
             'view_communities',
             'view_posts',
             'create_post',
             'update_post',
+
             'view_issues',
             'create_issue',
+            'update_issue',
+            'comment_issue',
             'view_polls',
             'vote_poll',
             'join_community',
+
+            'view_announcements',
+            'react_announcement',
+
         ]);
 
         // 🔧 Provider
+
         $roleProvider = Role::updateOrCreate(['name' => 'provider']);
-        $roleProvider->givePermissionTo([
+
+        $roleProvider->syncPermissions([
             'view_issues',
-            'update_issue',
+            'update_issue_status',
             'resolve_issue',
+              'add_issue_update',
+            'view_polls',
+
         ]);
 
         // ============================================================
@@ -118,7 +168,7 @@ class RolePermissionSeeder extends Seeder
         // ============================================================
 
         // 👑 Super Admin
-        $superAdmin = User::updateOrCreate(
+        $superAdmin = User::firstOrCreate(
             ['email' => 'superadmin@neighborhub.com'],
             [
                 'name' => 'Super Admin',
@@ -132,7 +182,7 @@ class RolePermissionSeeder extends Seeder
         $superAdmin->assignRole('super_admin');
 
         // 🏢 Manager
-        $manager = User::updateOrCreate(
+        $manager = User::firstOrCreate(
             ['email' => 'manager@neighborhub.com'],
             [
                 'name' => 'Manager User',
@@ -146,7 +196,7 @@ class RolePermissionSeeder extends Seeder
         $manager->assignRole('manager');
 
         // 🏠 Resident
-        $resident = User::updateOrCreate(
+        $resident = User::firstOrCreate(
             ['email' => 'resident@neighborhub.com'],
             [
                 'name' => 'Resident User',
@@ -160,7 +210,7 @@ class RolePermissionSeeder extends Seeder
         $resident->assignRole('resident');
 
         // 🔧 Provider
-        $provider = User::updateOrCreate(
+        $provider = User::firstOrCreate(
             ['email' => 'provider@neighborhub.com'],
             [
                 'name' => 'Provider User',
@@ -181,6 +231,5 @@ class RolePermissionSeeder extends Seeder
         $this->command->info('✅ Roles seeded: ' . Role::count());
         $this->command->info('✅ Users seeded: ' . User::count());
 
-     
     }
 }

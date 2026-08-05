@@ -8,72 +8,29 @@ use Modules\Auth\app\Models\User;
 use Modules\Community\app\Models\Announcement;
 use Modules\Community\app\Models\Community;
 
-
 class AnnouncementPolicy
 {
-
+    /**
+     * Determine whether the user can view an announcement.
+     */
     public function view(
         User $user,
-        Announcement $announcement ): bool {
+        Announcement $announcement
+    ): bool {
+        if (! $user->can('view_announcements')) {
+            return false;
+        }
 
-        return $this->belongsToCommunity(
-            $user,
-            $announcement
-        );
-    }
+        if ($user->isSuperAdmin()) {
+            return true;
+        }
 
-
-
-
-
-public function create(
-    User $user,
-    Community $community
-): bool {
-
-    if ($user->isSuperAdmin()) {
-        return true;
-    }
-
-    return $user->isManager()
-        && $user->managedCommunities()
-            ->where(
-                'communities.id',
-                $community->id
-            )
-            ->exists();
-}
-
-   public function update(
-    User $user,
-    Announcement $announcement
-): bool {
-
-    if ($user->isSuperAdmin()) {
-        return true;
-    }
-    return $user->isManager()
-        && $announcement->created_by_manager === $user->id
-        && $user->managedCommunities()
-            ->where(
-                'communities.id',
-                $announcement->community_id
-            )
-            ->exists();
-}
-
-    public function delete(
-        User $user,
-        Announcement $announcement): bool {
-
-        return $this->update(
-            $user,
-            $announcement
-        );
-    }
-    public function react(
-        User $user,
-        Announcement $announcement): bool {
+        if ($user->isManager()) {
+            return $this->managesCommunity(
+                $user,
+                (int) $announcement->community_id
+            );
+        }
 
         return $user->isResident()
             && $this->belongsToCommunity(
@@ -81,24 +38,116 @@ public function create(
                 $announcement
             );
     }
+
+    /**
+     * Determine whether the user can create an announcement.
+     */
+    public function create(
+        User $user,
+        Community $community
+    ): bool {
+        if (! $user->can('create_announcement')) {
+            return false;
+        }
+
+        if ($user->isSuperAdmin()) {
+            return true;
+        }
+
+        return $user->isManager()
+            && $this->managesCommunity(
+                $user,
+                (int) $community->id
+            );
+    }
+
+
+ public function update(
+    User $user,
+    Announcement $announcement
+): bool {
+
+    if (! $user->can('update_announcement')) {
+        return false;
+    }
+
+    if ($user->isSuperAdmin()) {
+        return true;
+    }
+
+    return $user->isManager()
+        && (int) $announcement->created_by_manager === (int) $user->id
+        && $this->managesCommunity(
+            $user,
+            (int) $announcement->community_id
+        );
+}
+
+    /**
+     * Determine whether the user can delete an announcement.
+     */
+   public function delete(
+    User $user,
+    Announcement $announcement
+): bool {
+
+    if (! $user->can('delete_announcement')) {
+        return false;
+    }
+
+    if ($user->isSuperAdmin()) {
+        return true;
+    }
+
+    return $user->isManager()
+        && (int) $announcement->created_by_manager === (int) $user->id
+        && $this->managesCommunity(
+            $user,
+            (int) $announcement->community_id
+        );
+}
+
+    /**
+     * Determine whether the user can react to an announcement.
+     */
+    public function react(
+        User $user,
+        Announcement $announcement
+    ): bool {
+        if (! $user->can('react_announcement')) {
+            return false;
+        }
+
+        return $user->isResident()
+            && $this->belongsToCommunity(
+                $user,
+                $announcement
+            );
+    }
+
+    /**
+     * Check whether the manager manages the specified community.
+     */
+    private function managesCommunity(
+        User $user,
+        int $communityId
+    ): bool {
+        return $user->managedCommunities()
+            ->where('communities.id', $communityId)
+            ->exists();
+    }
+
+    /**
+     * Check whether the resident belongs to the announcement community.
+     */
     private function belongsToCommunity(
         User $user,
         Announcement $announcement
     ): bool {
-
-        if (! $user->resident) {
-            return false;
-        }
-
-
         return $user->resident()
-            ->whereHas(
-                'unit',
-                fn ($query) =>
-                    $query->where(
-                        'community_id',
-                        $announcement->community_id
-                    )
-            )->exists();
+            ->where('community_id', $announcement->community_id)
+            ->where('status', 'active')
+            ->where('current_marker', true)
+            ->exists();
     }
 }

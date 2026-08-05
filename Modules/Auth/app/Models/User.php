@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 namespace Modules\Auth\app\Models;
-
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -30,7 +29,9 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable,HasRoles;
+
+    use HasApiTokens,HasRoles, HasFactory, Notifiable;
+
 
     /**
      * Safe profile attributes that may be mass assigned.
@@ -188,4 +189,5 @@ class User extends Authenticatable
     {
         return $this->hasMany(Announcement::class, 'created_by_manager');
     }
+
 }

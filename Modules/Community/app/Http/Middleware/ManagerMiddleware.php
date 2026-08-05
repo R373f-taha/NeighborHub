@@ -22,11 +22,11 @@ class ManagerMiddleware
             ], 403);
         }
 
-        if (!$request->user()->hasRole('manager')) {
-            return response()->json([
-                'message' => 'Unauthorized. This action requires Manager role.',
-            ], 403);
-        }
+        // if (!$request->user()->hasRole('manager')) {
+        //     return response()->json([
+        //         'message' => 'Unauthorized. This action requires Manager role.',
+        //     ], 403);
+        // }
 
 
         $communityId = $request->route('communityId'); // Route Model Binding

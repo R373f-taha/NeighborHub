@@ -39,7 +39,13 @@ class Announcement extends Model
         return AnnouncementFactory::new();
     }
 
-
+public function resolveRouteBinding($value, $field = null)
+{
+    return $this->where(
+        $field ?? $this->getRouteKeyName(),
+        $value
+    )->firstOrFail();
+}
 
     public function community()
     {
