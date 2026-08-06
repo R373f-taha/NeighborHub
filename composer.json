@@ -41,6 +41,10 @@
             "Modules\\Interaction\\Database\\Seeders\\": "Modules/Interaction/database/seeders/",
             "Modules\\Community\\Database\\Factories\\": "Modules/Community/database/factories/",
             "Modules\\Community\\Database\\Seeders\\": "Modules/Community/database/seeders/",
+            "Modules\\ServiceListing\\Database\\Factories\\": "Modules/ServiceListing/database/factories/",
+            "Modules\\ServiceListing\\Database\\Seeders\\": "Modules/ServiceListing/database/seeders/",
+            "Modules\\Messaging\\Database\\Factories\\": "Modules/Messaging/database/factories/",
+            "Modules\\Messaging\\Database\\Seeders\\": "Modules/Messaging/database/seeders/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
         }

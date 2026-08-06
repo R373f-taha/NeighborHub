@@ -15,31 +15,38 @@ class MediaFactory extends Factory
 {
     protected $model = Media::class;
 
-
+    /**
+     * No filesystem writes and no DB queries: only synthetic metadata. The
+     * morph owner is supplied explicitly via the forPost()/forServiceListing()
+     * helpers so tests never leave ownership ambiguous.
+     *
+     * @return array<string, mixed>
+     */
     public function definition(): array
     {
         return [
-
-            'mediable_type' => null,
-
-            'mediable_id' => null,
-
-
-            'uploaded_by' => User::factory(),
-
-
-            'file_path' => 'uploads/media/' . fake()->uuid() . '.jpg',
-
+            'file_path' => 'media/' . fake()->uuid() . '.jpg',
             'file_name' => fake()->word() . '.jpg',
-
             'mime_type' => 'image/jpeg',
-
-            'file_size' => fake()->numberBetween(
-                50000,
-                5000000
-            ),
-
+            'file_size' => fake()->numberBetween(50_000, 500_000),
             'disk' => 'public',
+            'position' => 1,
+            'uploaded_by' => User::factory(),
         ];
+    }
+
+    public function forPost($post): static
+    {
+        return $this->for($post, 'mediable');
+    }
+
+    public function forServiceListing($listing): static
+    {
+        return $this->for($listing, 'mediable');
+    }
+
+    public function position(int $position): static
+    {
+        return $this->state(['position' => $position]);
     }
 }
