@@ -1,16 +1,11 @@
 <?php
+
 declare(strict_types=1);
 
-
 use Illuminate\Support\Facades\Route;
-use Modules\Issue\app\Models\Issue;
+
 use Modules\Issue\app\Http\Controllers\V1\IssueController;
 use Modules\Issue\app\Http\Controllers\V1\IssueCategoryController;
-
-Route::model('issue', Issue::class);
-
-
-
 
 
 Route::middleware('auth:sanctum')
@@ -43,7 +38,8 @@ Route::middleware('auth:sanctum')
             ->group(function () {
 
 
-                // List
+
+                // List Issues
 
                 Route::get(
                     '/',
@@ -53,7 +49,8 @@ Route::middleware('auth:sanctum')
 
 
 
-                // Create
+                // Create Issue
+                // Resident must belong to this community
 
                 Route::post(
                     '/',
@@ -61,10 +58,13 @@ Route::middleware('auth:sanctum')
                 )
                 ->middleware([
                     'resident',
+                    'residentOfCommunity',
                     'can:create_issue',
                 ]);
 
-                // Show
+
+
+                // Show Issue
 
                 Route::get(
                     '/{issue}',
@@ -72,22 +72,29 @@ Route::middleware('auth:sanctum')
                 )
                 ->middleware('can:view_issues');
 
-                // Update
+
+
+                // Update Issue
 
                 Route::put(
                     '/{issue}',
                     [IssueController::class, 'update']
                 )
-                ->middleware('can:update_issue');
-
+                ->middleware(['managerOrSuperAdmin','can:update_issue',]);
 
 
                 // Assign Provider
-Route::patch(
-    '/{issue}/assign',
-    [IssueController::class, 'assign']
-)
-->whereNumber('issue')->middleware(['manager','can:assign_issue',]);
+                // Manager must belong to this community
+
+                Route::patch(
+                    '/{issue}/assign',
+                    [IssueController::class, 'assign']
+                )
+                ->whereNumber('issue')
+                ->middleware([
+                    'managerOrSuperAdmin',
+                    'can:assign_issue',
+                ]);
 
 
 
@@ -97,34 +104,51 @@ Route::patch(
                     '/{issue}/status',
                     [IssueController::class, 'updateStatus']
                 )
+                ->middleware(['managerOrSuperAdmin','can:update_issue_status',]);
+
+
+
+                // Add Update Log
+
+                Route::post(
+                    '/{issue}/updates',
+                    [IssueController::class, 'addUpdate']
+                )->middleware([ 'managerOrSuperAdmin','can:add_issue_update',]);
+
+
+                // Get Updates History
+
+                Route::get(
+                    '/{issue}/updates',
+                    [IssueController::class, 'updates']
+                )
+                ->middleware('can:view_issues');
+
+
+
+                // Delete Issue
+
+                Route::delete(
+                    '/{issue}',
+                    [IssueController::class, 'destroy']
+                )
                 ->middleware([
-                    'can:update_issue_status',
+                    'managerOrSuperAdmin',
+                    'can:delete_issue',
                 ]);
 
 
 
-Route::post(
-    '/{issue}/updates',
-    [IssueController::class, 'addUpdate']
-)
-->middleware('can:add_issue_update');
+                // Comments
 
-                // History
+                Route::post(
+                    '/{issue}/comments',
+                    [IssueController::class, 'addComment']
+                )
+                ->middleware('can:comment_issue');
 
-                Route::get(
-    '/{issue}/updates',
-    [IssueController::class, 'updates']
-)
-->middleware('can:view_issues');
-
-                // Delete
-                Route::delete('/{issue}',[IssueController::class, 'destroy'])
-                ->middleware(['manager','can:delete_issue']);
-
-
-Route::post('/{issue}/comments',[IssueController::class, 'addComment'])
-->middleware('can:comment_issue');
 
             });
+
 
     });

@@ -106,40 +106,48 @@ class IssueService
 
     }
 
-    public function assign(
-        Issue $issue,
-        AssignIssueData $data
-    ): Issue {
+  public function assign(
+    Issue $issue,
+    AssignIssueData $data
+): Issue {
+
+    return DB::transaction(function () use (
+        $issue,
+        $data
+    ) {
+
+        $issue = Issue::query()
+            ->lockForUpdate()
+            ->findOrFail($issue->id);
 
 
-        return DB::transaction(function () use (
-            $issue,
-            $data
-        ) {
+        if ($issue->assigned_to !== null) {
 
-
-            $issue = Issue::query()
-                ->lockForUpdate()
-                ->findOrFail($issue->id);
-
-
-            $issue->update([
-
-                'assigned_to' => $data->providerId,
-
-                'status' => 'assigned',
-
-            ]);
-            $issue->refresh();
-            IssueAssigned::dispatch(
-                $issue
+            abort(
+                422,
+                'Issue is already assigned.'
             );
 
-            return $issue;
+        }
 
-        });
 
-    }
+        $issue->update([
+
+            'assigned_to' => $data->providerId,
+
+            'status' => IssueStatus::ASSIGNED,
+
+        ]);
+
+        $issue->refresh();
+        IssueAssigned::dispatch(
+            $issue
+        );
+        return $issue;
+
+    });
+
+}
     public function updateStatus(
         Issue $issue,
         IssueStatusData $data
@@ -205,20 +213,28 @@ public function addLog(Issue $issue, IssueLogData $data): void
         'note' => $data->note,
     ]);
 }
-    public function delete(
-        Issue $issue
-    ): bool {
+   public function delete(
+    Issue $issue
+): bool {
+
+    return DB::transaction(function () use ($issue) {
 
 
-        return DB::transaction(function () use ($issue) {
+        if ($issue->assigned_to !== null) {
+
+            abort(
+                422,
+                'Assigned issue cannot be deleted.'
+            );
+
+        }
 
 
-            $deleted = $this->repository
-                ->delete($issue);
+        return $this->repository
+            ->delete($issue);
 
-            return $deleted;
+    });
 
-        });
-    }
+}
 
 }
