@@ -30,6 +30,7 @@ Route::middleware([
                     'announcements',
                     [AnnouncementController::class, 'index']
                 )->middleware([
+                     'resident.of.community',
                     'can:view_announcements',
                     'throttle:60,60',
                 ]);
@@ -47,6 +48,7 @@ Route::middleware([
                     'announcements/{announcement}',
                     [AnnouncementController::class, 'show']
                 )->middleware([
+                     'resident.of.community',
                     'can:view_announcements',
                     'throttle:60,60',
                 ]);
@@ -71,8 +73,7 @@ Route::delete(
                 Route::post(
                     'announcements/{announcement}/react',
                     [AnnouncementController::class, 'react']
-                )->middleware([
-                    'resident',
+                )->middleware([  'resident.of.community',
                     'can:react_announcement',
                     'throttle:30,60',
                 ]);
