@@ -19,7 +19,11 @@ use Modules\ServiceListing\app\Models\ServiceListing;
  */
 return new class extends Migration
 {
-    private const array MAP = [
+    // private const array MAP = [
+    //     Post::class => 'post',
+    //     ServiceListing::class => 'service_listing',
+    // ];
+ private const MAP = [
         Post::class => 'post',
         ServiceListing::class => 'service_listing',
     ];

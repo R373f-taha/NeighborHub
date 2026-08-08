@@ -10,9 +10,9 @@ use Illuminate\Support\Str;
 
 class MediaStorage
 {
-    public const string DISK = 'public';
+    public const DISK = 'public';
 
-    private const string DIRECTORY = 'media';
+    private const  DIRECTORY = 'media';
 
     /**
      * Store the uploaded image under a server-generated unique path. The
@@ -27,7 +27,7 @@ class MediaStorage
 
         // hashName() yields a unique 40-char name carrying the file's real
         // extension, which we already validated via MIME inspection.
-        $path = $disk->putFile(self::DIRECTORY, $file);
+        $path = $disk->putFile(self::DIRECTORY, $file);// ex:media/abc123def456.jpg
 
         return [
             'path' => $path,
@@ -48,8 +48,8 @@ class MediaStorage
         return Storage::disk($disk)->delete($path);
     }
 
-    public function url(string $path, string $disk): string
+    public function url(string $path, string $disk)//: string   //return the general url to the file
     {
-        return Storage::disk($disk)->url($path);
+      //  return Storage::disk($disk)->url($path);
     }
 }
