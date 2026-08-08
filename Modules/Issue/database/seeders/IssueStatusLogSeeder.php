@@ -13,19 +13,14 @@ class IssueStatusLogSeeder extends Seeder
 {
     public function run(): void
     {
-
         $managers = User::role('manager')->get();
-
 
         if ($managers->isEmpty()) {
             return;
         }
 
-
-
         Issue::query()
             ->each(function (Issue $issue) use ($managers) {
-
 
                 IssueStatusLog::create([
 
@@ -40,9 +35,6 @@ class IssueStatusLogSeeder extends Seeder
                     'note' => 'Initial issue status',
 
                 ]);
-
-
             });
-
     }
 }

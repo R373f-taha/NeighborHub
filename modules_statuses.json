@@ -9,5 +9,6 @@
     "Notification": true,
     "Media": true,
     "Interaction": true,
-    "Report": true
+    "Reports": true
+
 }

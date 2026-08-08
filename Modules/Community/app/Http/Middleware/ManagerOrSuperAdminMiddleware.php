@@ -31,13 +31,14 @@ class ManagerOrSuperAdminMiddleware
             ], 403);
         }
 
-        // Get community id from route
-        $communityId = $request->route('communityId');
+// Get community id from route
+$communityId = $request->route('community')
+    ?? $request->route('communityId');
 
-        // Fallback if community_id exists in request body
-        if (!$communityId && $request->has('community_id')) {
-            $communityId = $request->community_id;
-        }
+// Fallback if community_id exists in request body
+if (!$communityId && $request->has('community_id')) {
+    $communityId = $request->community_id;
+}
 
         $community = Community::find($communityId);
 
@@ -52,11 +53,14 @@ class ManagerOrSuperAdminMiddleware
             ->where('manager_id', $user->id)
             ->exists();
 
+            
+
         if (!$isManagerOfCommunity) {
             return response()->json([
                 'message' => 'Unauthorized. You are not a manager of this community.',
             ], 403);
         }
+
 
         return $next($request);
     }
