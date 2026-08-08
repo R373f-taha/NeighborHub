@@ -32,6 +32,15 @@ class User extends Authenticatable
 
     use HasApiTokens,HasRoles, HasFactory, Notifiable;
 
+    /**
+     * Spatie RBAC authority guard for this model.
+     *
+     * Pinned to the `api` guard. API routes authenticate through the `sanctum`
+     * guard, which shifts the runtime default auth guard; without a pinned
+     * guard Spatie would resolve roles/permissions under that shifted guard and
+     * authorization would silently fail. All RBAC data lives under `api`.
+     */
+    protected string $guard_name = 'api';
 
     /**
      * Safe profile attributes that may be mass assigned.

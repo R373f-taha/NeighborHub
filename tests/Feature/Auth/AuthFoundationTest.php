@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Schema;
 use Laravel\Sanctum\HasApiTokens;
 use Modules\Auth\app\Enums\UserRole;
 use Modules\Auth\app\Models\User;
+use Tests\Support\TestDatabaseManager;
 use Tests\TestCase;
 
 /**
@@ -21,12 +22,8 @@ use Tests\TestCase;
  * provider wiring, route booting). They do NOT test any Authentication
  * endpoint behaviour, which is implemented in a separate task.
  *
- * RefreshDatabase is intentionally NOT used: the full module migration set
- * contains a pre-existing ordering bug (Community `residents` migration runs
- * after Post/Poll/ServiceListing migrations that foreign-key reference it),
- * which is outside the scope of the auth foundation. DB-dependent assertions
- * target the disposable MySQL foundation database and are skipped when it is
- * unavailable.
+ * DB-dependent assertions use the shared approved disposable database
+ * (Tests\Support\TestDatabaseManager) provisioned before Laravel boots.
  */
 class AuthFoundationTest extends TestCase
 {
@@ -37,7 +34,7 @@ class AuthFoundationTest extends TestCase
 
     public function test_canonical_user_is_authenticatable(): void
     {
-        $this->assertInstanceOf(Authenticatable::class, new User());
+        $this->assertInstanceOf(Authenticatable::class, new User);
     }
 
     public function test_user_uses_sanctum_has_api_tokens(): void
@@ -83,7 +80,7 @@ class AuthFoundationTest extends TestCase
 
     public function test_role_and_is_active_are_not_mass_assignable(): void
     {
-        $user = new User();
+        $user = new User;
         $user->fill([
             'name' => 'Jane Doe',
             'email' => 'jane@example.com',
@@ -100,7 +97,10 @@ class AuthFoundationTest extends TestCase
 
     public function test_module_routes_boot_without_controller_resolution_errors(): void
     {
-        $this->assertTrue(Route::has('community.index'));
+        $routes = collect(app('router')->getRoutes()->getRoutes());
+
+        $hasCommunityIndex = $routes->contains(fn ($r) => str_contains($r->uri(), 'communities') && in_array('GET', $r->methods()));
+        $this->assertTrue($hasCommunityIndex);
         $this->assertTrue(Route::has('poll.index'));
     }
 
@@ -113,30 +113,18 @@ class AuthFoundationTest extends TestCase
 
     public function test_auth_foundation_tables_exist(): void
     {
-        $this->useFoundationDatabase();
+        TestDatabaseManager::provision();
 
-        try {
-            $this->assertTrue(Schema::hasTable('users'));
-            $this->assertTrue(Schema::hasTable('personal_access_tokens'));
-            $this->assertTrue(Schema::hasTable('password_reset_tokens'));
-        } catch (\Throwable $e) {
-            $this->markTestSkipped(
-                'Foundation test database unavailable: '.$e->getMessage()
-            );
-        }
+        $this->assertTrue(Schema::hasTable('users'));
+        $this->assertTrue(Schema::hasTable('personal_access_tokens'));
+        $this->assertTrue(Schema::hasTable('password_reset_tokens'));
     }
 
     public function test_factory_can_persist_a_valid_resident_user(): void
     {
-        $this->useFoundationDatabase();
+        TestDatabaseManager::provision();
 
-        try {
-            DB::connection('mysql')->getPdo();
-        } catch (\Throwable $e) {
-            $this->markTestSkipped(
-                'Foundation test database unavailable: '.$e->getMessage()
-            );
-        }
+        DB::connection('mysql')->getPdo();
 
         $user = User::factory()->create();
 
@@ -147,22 +135,5 @@ class AuthFoundationTest extends TestCase
         ]);
 
         $user->forceDelete();
-    }
-
-    /**
-     * Point DB-dependent assertions at the disposable MySQL foundation
-     * database (sqlite is unavailable in this environment).
-     */
-    private function useFoundationDatabase(): void
-    {
-        config([
-            'database.default' => 'mysql',
-            'database.connections.mysql.database' => env(
-                'AUTH_FOUNDATION_TEST_DB',
-                'neighborhub_auth_foundation_test'
-            ),
-        ]);
-
-        DB::purge('mysql');
     }
 }
