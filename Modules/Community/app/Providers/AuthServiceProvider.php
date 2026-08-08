@@ -14,9 +14,12 @@ use Modules\Community\app\Policies\CommunityPolicy;
 class AuthServiceProvider extends ServiceProvider
 {
     protected $policies = [
+
         Announcement::class => AnnouncementPolicy::class,
         Community::class => CommunityPolicy::class,
     ];
+
+
 
     public function boot(): void
     {
