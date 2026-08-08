@@ -74,9 +74,7 @@ class RolePermissionSeeder extends Seeder
 
         foreach ($allPermissions as $permission) {
 
-            Permission::updateOrCreate(['name' => $permission, 'guard_name' => 'web']);
-
-         
+            Permission::updateOrCreate(['name' => $permission, 'guard_name' => $guard]);
 
         }
 
@@ -93,7 +91,7 @@ class RolePermissionSeeder extends Seeder
 
         // 🏢 Manager
 
-        $roleManager = Role::updateOrCreate(['name' => 'manager']);
+        $roleManager = Role::updateOrCreate(['name' => 'manager', 'guard_name' => $guard]);
 
         $roleManager->syncPermissions([
             'view_communities',
@@ -129,7 +127,7 @@ class RolePermissionSeeder extends Seeder
 
         // 🏠 Resident
 
-        $roleResident = Role::updateOrCreate(['name' => 'resident']);
+        $roleResident = Role::updateOrCreate(['name' => 'resident', 'guard_name' => $guard]);
 
         $roleResident->syncPermissions([
             'view_communities',
@@ -152,7 +150,7 @@ class RolePermissionSeeder extends Seeder
 
         // 🔧 Provider
 
-        $roleProvider = Role::updateOrCreate(['name' => 'provider']);
+        $roleProvider = Role::updateOrCreate(['name' => 'provider', 'guard_name' => $guard]);
 
         $roleProvider->syncPermissions([
             'view_issues',

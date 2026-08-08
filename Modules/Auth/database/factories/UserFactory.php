@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Modules\Auth\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Hash;
 use Modules\Auth\app\Enums\UserRole;
 use Modules\Auth\app\Models\User;
-use Illuminate\Support\Facades\Hash;
 
 /**
  * @extends Factory<User>
@@ -16,23 +16,23 @@ class UserFactory extends Factory
 {
     protected $model = User::class;
 
-
+    /**
+     * Mirror the users.role enum onto the Spatie role when one is set. The role
+     * is only assigned; it is not created here, so RBAC definitions stay owned
+     * by the seeder/test bootstrap.
+     */
     public function configure(): static
     {
-        return $this->afterCreating(function (User $user) {
-
-            if ($user->role instanceof UserRole) {
-
-                $user->assignRole(
-                    $user->role->value
-                );
-
+        return $this->afterCreating(function (User $user): void {
+            if ($user->role instanceof UserRole && ! $user->hasRole($user->role->value)) {
+                $user->assignRole($user->role->value);
             }
-
         });
     }
 
-
+    /**
+     * @return array<string, mixed>
+     */
     public function definition(): array
     {
         return [
