@@ -8,5 +8,6 @@
     "Messaging": true,
     "Notification": true,
     "Media": true,
-    "Interaction": true
+    "Interaction": true,
+    "Reports": true
 }
