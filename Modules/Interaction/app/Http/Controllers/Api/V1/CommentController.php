@@ -7,7 +7,6 @@ namespace Modules\Interaction\app\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Gate;
 use Modules\Community\app\Models\Community;
 use Modules\Interaction\app\Http\Requests\Api\V1\StoreCommentRequest;
@@ -27,7 +26,7 @@ class CommentController extends Controller
         private ModerationLogger $logger,
     ) {}
 
-    public function index(Request $request, Community $community, Post $post): AnonymousResourceCollection
+    public function index(Request $request, Community $community, Post $post): JsonResponse
     {
         abort_unless((int) $post->community_id === (int) $community->id, 404);
 
@@ -37,7 +36,7 @@ class CommentController extends Controller
 
         return CommentResource::collection(
             $this->comments->index($post, $perPage)
-        );
+        )->additional(['message' => 'Comments retrieved successfully.'])->response();
     }
 
     public function store(StoreCommentRequest $request, Community $community, Post $post): JsonResponse
@@ -48,19 +47,23 @@ class CommentController extends Controller
 
         $comment = $this->comments->store($post, $request->user(), $request->validated());
 
-        return (new CommentResource($comment))
-            ->response()
-            ->setStatusCode(201);
+        return response()->json([
+            'message' => 'Comment created successfully.',
+            'data' => new CommentResource($comment),
+        ], 201);
     }
 
-    public function update(UpdateCommentRequest $request, Community $community, Post $post, Comment $comment): CommentResource
+    public function update(UpdateCommentRequest $request, Community $community, Post $post, Comment $comment): JsonResponse
     {
         abort_unless((int) $post->community_id === (int) $community->id, 404);
         $this->abortUnlessCommentBelongsToPost($comment, $post);
 
         Gate::authorize('update', $comment);
 
-        return new CommentResource($this->comments->update($comment, $request->validated()));
+        return response()->json([
+            'message' => 'Comment updated successfully.',
+            'data' => new CommentResource($this->comments->update($comment, $request->validated())),
+        ]);
     }
 
     public function destroy(Request $request, Community $community, Post $post, Comment $comment): JsonResponse
@@ -85,7 +88,10 @@ class CommentController extends Controller
 
         $this->comments->delete($comment);
 
-        return response()->json(null, 204);
+        return response()->json([
+            'message' => 'Comment deleted successfully.',
+            'data' => null,
+        ], 200);
     }
 
     private function abortUnlessCommentBelongsToPost(Comment $comment, Post $post): void

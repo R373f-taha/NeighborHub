@@ -31,7 +31,7 @@ class PollFactory extends Factory
 
             'type' => fake()->randomElement([
                 'single_choice',
-                'multiple_choice',
+
             ]),
 
 
@@ -52,8 +52,7 @@ class PollFactory extends Factory
             'closed_at' => null,
 
 
-            // حسب migration
-            'colsed_by_manager' => User::factory(),
+        //    'colsed_by_manager' => User::factory(),
 
         ];
     }

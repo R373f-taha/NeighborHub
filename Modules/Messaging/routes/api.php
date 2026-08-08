@@ -1,8 +1,10 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Modules\Messaging\app\Http\Controllers\MessagingController;
+declare(strict_types=1);
 
-Route::middleware(['auth:sanctum'])->prefix('v1')->group(function () {
-    Route::apiResource('messagings', MessagingController::class)->names('messaging');
+use Illuminate\Support\Facades\Route;
+
+
+
+Route::middleware('api')->prefix('v1')->group(function (): void {
 });

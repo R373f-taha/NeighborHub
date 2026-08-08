@@ -36,7 +36,7 @@ class CommunityContentAccessService
 
     public function manages(User $user, Community $community): bool
     {
-        if (! $user->isManager() && ! $user->isSuperAdmin()) {
+        if (! $user->hasRole('manager') && ! $user->hasRole('super_admin')) {
             return false;
         }
 
@@ -47,7 +47,7 @@ class CommunityContentAccessService
 
     public function canRead(User $user, Community $community): bool
     {
-        if ($user->isSuperAdmin()) {
+        if ($user->hasRole('super_admin')) {
             return true;
         }
 

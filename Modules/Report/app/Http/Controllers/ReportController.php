@@ -1,18 +1,18 @@
 <?php
 
-namespace Modules\Poll\app\Http\Controllers;
+namespace Modules\Report\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
-class PollController extends Controller
+class ReportController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return view('poll::index');
+        return view('report::index');
     }
 
     /**
@@ -20,7 +20,7 @@ class PollController extends Controller
      */
     public function create()
     {
-        return view('poll::create');
+        return view('report::create');
     }
 
     /**
@@ -33,7 +33,7 @@ class PollController extends Controller
      */
     public function show($id)
     {
-        return view('poll::show');
+        return view('report::show');
     }
 
     /**
@@ -41,7 +41,7 @@ class PollController extends Controller
      */
     public function edit($id)
     {
-        return view('poll::edit');
+        return view('report::edit');
     }
 
     /**

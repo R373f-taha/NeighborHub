@@ -67,7 +67,12 @@ class CommunityController extends Controller
     public function store(StoreCommunityRequest $request)
     {
         $community = $this->communityService->create($request->validated());
-        return new CommunityResource($community);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Community created successfully.',
+            'data' => new CommunityResource($community),
+        ], 201);
     }
 
     /**
@@ -75,8 +80,13 @@ class CommunityController extends Controller
      */
     public function show($communityId)
     {
-        $community=Community::findOrFail($communityId);
-        return new CommunityResource($community->load(['units', 'managers']));
+        $community = Community::findOrFail($communityId);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Community retrieved successfully.',
+            'data' => new CommunityResource($community->load(['units', 'managers'])),
+        ], 200);
     }
 
     /**
@@ -87,7 +97,12 @@ class CommunityController extends Controller
         $community = Community::findOrFail($communityId);
 
         $updated = $this->communityService->update($community, $request->validated());
-       return new CommunityResource($updated);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Community updated successfully.',
+            'data' => new CommunityResource($updated),
+        ], 200);
     }
 
     /**
@@ -97,9 +112,12 @@ class CommunityController extends Controller
     {
         $community = Community::findOrFail($communityId);
 
-
         $this->communityService->delete($community);
-        return response()->json(['message' => 'Community deleted successfully']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Community deleted successfully',
+        ], 200);
     }
 
 

@@ -50,7 +50,7 @@ class ServiceListing extends Model
 
     public function media()
     {
-        return $this->morphMany(Media::class, 'mediable');
+        return $this->morphMany(Media::class, 'mediable')->orderBy('position')->orderBy('id');
     }
 
       protected static function newFactory()

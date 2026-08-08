@@ -30,8 +30,8 @@ class PollSeeder extends Seeder
 
                         'created_by' => $managers->random()->id,
 
-                        'colsed_by_manager' =>
-                            $managers->random()->id,
+                        // 'colsed_by_manager' =>
+                        //     $managers->random()->id,
 
                     ]);
 

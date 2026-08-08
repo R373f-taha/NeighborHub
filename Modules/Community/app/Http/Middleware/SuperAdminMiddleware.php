@@ -21,6 +21,12 @@ class SuperAdminMiddleware
             ], 403);
         }
 
+             if (!$request->user()->hasRole('super_admin')) {
+            return response()->json([
+                'message' => 'Unauthorized. This action requires Super Admin role.',
+            ], 403);
+        }
+
         return $next($request);
     }
 }
