@@ -101,7 +101,7 @@ class AuthFoundationTest extends TestCase
     public function test_module_routes_boot_without_controller_resolution_errors(): void
     {
         $this->assertTrue(Route::has('community.index'));
-        $this->assertTrue(Route::has('poll.index'));
+        $this->assertTrue(Route::has('polls.index'));
     }
 
     public function test_no_auths_resource_stub_route_is_registered(): void

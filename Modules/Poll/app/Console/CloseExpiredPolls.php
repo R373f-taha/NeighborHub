@@ -8,8 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Modules\Poll\app\Models\Poll;
 use Modules\Poll\app\Enums\PollStatus;
-use Modules\Poll\app\Enums\PollCloseReason;
-use Modules\Poll\app\Events\PollClosed;
+use Modules\Poll\app\Jobs\CloseExpiredPollJob;
 
 class CloseExpiredPolls extends Command
 {
@@ -19,7 +18,8 @@ class CloseExpiredPolls extends Command
      * @var string
      */
     protected $signature = 'polls:close-expired
-                            {--dry-run : Show what would be closed without actually closing}';
+                            {--dry-run : Show what would be closed without actually closing}
+                            {--sync : Run synchronously without queue}';
 
     /**
      * The console command description.
@@ -34,6 +34,7 @@ class CloseExpiredPolls extends Command
     public function handle(): int
     {
         $isDryRun = $this->option('dry-run');
+        $isSync = $this->option('sync');
 
         if ($isDryRun) {
             $this->info('🔍 DRY RUN MODE - No changes will be made');
@@ -44,10 +45,10 @@ class CloseExpiredPolls extends Command
 
         Log::info('🔄 Auto-close expired polls started', [
             'dry_run' => $isDryRun,
+            'sync' => $isSync,
         ]);
 
         try {
-            // Get all active polls that have expired
             $expiredPolls = Poll::query()
                 ->where('status', PollStatus::Active)
                 ->where('ends_at', '<', now())
@@ -87,6 +88,7 @@ class CloseExpiredPolls extends Command
                 return Command::SUCCESS;
             }
 
+            // ✅ إغلاق الاستطلاعات
             $this->info('🔒 Closing expired polls...');
             $closedCount = 0;
 
@@ -97,30 +99,28 @@ class CloseExpiredPolls extends Command
                 try {
                     $this->line("\n🔒 Closing poll: {$poll->title} (ID: {$poll->id})");
 
-                    // Close the poll
-                    $poll->update([
-                        'status' => PollStatus::Closed,
-                        'closed_at' => now(),
-                        'close_reason' => PollCloseReason::Expired,
-                    ]);
-
-                    // Dispatch event to send results
-                    event(new PollClosed($poll));
+                    if ($isSync) {
+                        $job = new CloseExpiredPollJob($poll);
+                        $job->handle();
+                    } else {
+                        CloseExpiredPollJob::dispatch($poll)
+                            ->onQueue('polls');
+                    }
 
                     $closedCount++;
                     $progressBar->advance();
 
-                    Log::info('🔒 Auto-closed expired poll', [
+                    Log::info('📨 Dispatched close expired poll job', [
                         'poll_id' => $poll->id,
                         'poll_title' => $poll->title,
-                        'community_id' => $poll->community_id,
+                        'sync' => $isSync,
                     ]);
 
                 } catch (\Exception $e) {
                     $this->error("\n❌ Failed to close poll: {$poll->title}");
                     $this->error("Error: {$e->getMessage()}");
 
-                    Log::error('❌ Failed to auto-close poll', [
+                    Log::error('❌ Failed to dispatch close poll job', [
                         'poll_id' => $poll->id,
                         'error' => $e->getMessage(),
                     ]);
@@ -130,11 +130,12 @@ class CloseExpiredPolls extends Command
             $progressBar->finish();
             $this->newLine(2);
 
-            $this->info("✅ Completed: Closed {$closedCount} expired polls");
+            $this->info("✅ Completed: Dispatched {$closedCount} close jobs");
 
             Log::info('✅ Auto-close completed', [
                 'total' => $expiredPolls->count(),
                 'closed' => $closedCount,
+                'sync' => $isSync,
             ]);
 
             return Command::SUCCESS;

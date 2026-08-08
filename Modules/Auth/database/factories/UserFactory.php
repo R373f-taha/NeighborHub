@@ -7,10 +7,7 @@ namespace Modules\Auth\Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Auth\app\Enums\UserRole;
 use Modules\Auth\app\Models\User;
-
 use Illuminate\Support\Facades\Hash;
-
-use Spatie\Permission\Models\Role;
 
 /**
  * @extends Factory<User>
@@ -18,35 +15,6 @@ use Spatie\Permission\Models\Role;
 class UserFactory extends Factory
 {
     protected $model = User::class;
-
-
-
-    /**
-     * Keep Spatie roles in sync with the legacy users.role enum for any user
-     * created through the factory. The role is created on demand (idempotent)
-     * so tests that have not seeded roles still resolve, while tests that have
-     * seeded roles reuse the existing ones.
-     */
-    public function configure(): static
-    {
-        return $this->afterCreating(function (User $user): void {
-            $roleName = $user->role?->value;
-
-            if ($roleName === null) {
-                return;
-            }
-
-            Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'web']);
-
-            if (! $user->hasRole($roleName)) {
-                $user->assignRole($roleName);
-            }
-        });
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
 
 
     public function configure(): static

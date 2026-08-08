@@ -58,7 +58,7 @@ class MediaService
                     throw new AuthorizationException();
                 }
 
-                $existing = $this->parentPositions($alias, $parent);
+                $existing = $this->parentPositions($alias, $parent);//get all the positions of the existing media for this parent
 
                 if (count($existing) >= Media::MAX_PER_PARENT) {
                     throw MediaLimitExceededException::forParent(Media::MAX_PER_PARENT);
@@ -211,9 +211,9 @@ class MediaService
      * arbitrary model class and never discloses that an unsupported parent
      * exists.
      */
-    public function resolveContext(Media $media): MediaContext
+    public function resolveContext(Media $media): MediaContext //it takes a media object and returns the context of the parent model and its community
     {
-        $class = MediaParentType::map()[$media->mediable_type] ?? null;
+        $class = MediaParentType::map()[$media->mediable_type] ?? null;//convert alias to class name
 
         if ($class === null) {
             abort(404);
@@ -237,7 +237,7 @@ class MediaService
 
         $this->logger->cleanupFailed($descriptor);
 
-        CleanupMediaFile::dispatch($descriptor->path, $descriptor->disk);
+        CleanupMediaFile::dispatch($descriptor->path, $descriptor->disk);//try later
     }
 
     /**
