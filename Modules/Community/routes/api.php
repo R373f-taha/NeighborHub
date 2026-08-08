@@ -26,58 +26,85 @@ Route::middleware([
                 |--------------------------------------------------------------------------
                 */
 
+
                 Route::get(
                     'announcements',
                     [AnnouncementController::class, 'index']
                 )->middleware([
+                     'resident.of.community',
                     'can:view_announcements',
                     'throttle:60,60',
                 ]);
 
+                // List Announcements
+                Route::get(
+                    'announcements',
+                    [AnnouncementController::class, 'index']
+                )->middleware([
+                    'residentOfCommunity',
+                    'can:view_announcements',
+                    'throttle:60,60',
+                ]);
+
+
+                // Create Announcement
                 Route::post(
                     'announcements',
                     [AnnouncementController::class, 'store']
                 )->middleware([
-                    'manager.or.super.admin',
+                    'managerOrSuperAdmin',
                     'can:create_announcement',
                     'throttle:20,60',
                 ]);
 
+
+                // Show Announcement
                 Route::get(
                     'announcements/{announcement}',
                     [AnnouncementController::class, 'show']
                 )->middleware([
+                    'residentOfCommunity',
                     'can:view_announcements',
                     'throttle:60,60',
                 ]);
 
-  Route::put(
-    'announcements/{announcement}',
-    [AnnouncementController::class, 'update']
-)->middleware([
-    'manager.or.super.admin',
-    'can:update_announcement',
-    'throttle:20,60',
-]);
-Route::delete(
-    'announcements/{announcement}',
-    [AnnouncementController::class, 'destroy']
-)->middleware([
-    'manager.or.super.admin',
-    'can:delete_announcement',
-    'throttle:10,60',
-]);
 
+                // Update Announcement
+                Route::put(
+                    'announcements/{announcement}',
+                    [AnnouncementController::class, 'update']
+                )->middleware([
+                    'managerOrSuperAdmin',
+                    'can:update_announcement',
+                    'throttle:20,60',
+                ]);
+
+
+                // Delete Announcement
+                Route::delete(
+                    'announcements/{announcement}',
+                    [AnnouncementController::class, 'destroy']
+                )->middleware([
+                    'managerOrSuperAdmin',
+                    'can:delete_announcement',
+                    'throttle:10,60',
+                ]);
+
+
+                // React to Announcement
                 Route::post(
                     'announcements/{announcement}/react',
                     [AnnouncementController::class, 'react']
                 )->middleware([
-                    'resident',
+                    'residentOfCommunity',
                     'can:react_announcement',
                     'throttle:30,60',
                 ]);
             });
     });
+
+
+
 
 Route::prefix('api/v1')->group(function () {
     Route::get(

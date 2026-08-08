@@ -10,9 +10,14 @@ use Modules\ServiceListing\app\Models\ServiceListing;
 
 final class MediaParentType
 {
-    public const string POST = 'post';
+    // public const string POST = 'post';
 
-    public const string SERVICE_LISTING = 'service_listing';
+    // public const string SERVICE_LISTING = 'service_listing';
+
+
+     public const  POST = 'post';
+
+    public const SERVICE_LISTING = 'service_listing';
 
     /**
      * Owned alias => trusted parent class. This also feeds the central morph

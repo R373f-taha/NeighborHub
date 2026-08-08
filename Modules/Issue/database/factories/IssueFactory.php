@@ -1,21 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Issue\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-
+use Modules\Auth\app\Models\User;
+use Modules\Community\app\Models\Community;
+use Modules\Issue\app\Enums\IssuePriority;
+use Modules\Issue\app\Enums\IssueStatus;
 use Modules\Issue\app\Models\Issue;
 use Modules\Issue\app\Models\IssueCategory;
-use Modules\Issue\app\Enums\IssueStatus;
-use Modules\Issue\app\Enums\IssuePriority;
-use Modules\Community\app\Models\Community;
-use Modules\Auth\app\Models\User;
+
 class IssueFactory extends Factory
 {
     protected $model = Issue::class;
 
     public function definition(): array
     {
+        $status = fake()->randomElement(
+            IssueStatus::cases()
+        );
+
         return [
             'community_id' => Community::factory(),
 
@@ -31,7 +37,7 @@ class IssueFactory extends Factory
                 IssuePriority::cases()
             ),
 
-            'status' => IssueStatus::OPEN,
+            'status' => $status,
 
             'reported_by' => User::factory(),
 

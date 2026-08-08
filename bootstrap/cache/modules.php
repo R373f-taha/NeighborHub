@@ -11,7 +11,9 @@
     7 => 'Modules\\Notification\\app\\Providers\\NotificationServiceProvider',
     8 => 'Modules\\Poll\\app\\Providers\\PollServiceProvider',
     9 => 'Modules\\Post\\app\\Providers\\PostServiceProvider',
-    10 => 'Modules\\ServiceListing\\app\\Providers\\ServiceListingServiceProvider',
+
+    10 => 'Modules\\Reports\\app\\Providers\\ReportsServiceProvider',
+    11 => 'Modules\\ServiceListing\\app\\Providers\\ServiceListingServiceProvider',
   ),
   'eager' => 
   array (
@@ -25,7 +27,11 @@
     7 => 'Modules\\Notification\\app\\Providers\\NotificationServiceProvider',
     8 => 'Modules\\Poll\\app\\Providers\\PollServiceProvider',
     9 => 'Modules\\Post\\app\\Providers\\PostServiceProvider',
-    10 => 'Modules\\ServiceListing\\app\\Providers\\ServiceListingServiceProvider',
+
+    10 => 'Modules\\Reports\\app\\Providers\\ReportsServiceProvider',
+
+
+    11 => 'Modules\\ServiceListing\\app\\Providers\\ServiceListingServiceProvider',
   ),
   'deferred' => 
   array (

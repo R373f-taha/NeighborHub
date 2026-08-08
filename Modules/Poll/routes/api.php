@@ -25,10 +25,7 @@ Route::prefix('api/v1')->group(function () {
                 ->middleware(['manager.or.super.admin', 'can:create_poll'])
                 ->name('polls.store');
 
-            // ==========================================
-            // 3. GET /communities/{id}/polls/{pid} - تفاصيل تصويت
-            //    ✅ أي مستخدم مسجل (ليس شرط Resident)
-            // ==========================================
+            
             Route::get('polls/{pollId}', [PollController::class, 'show'])
                 ->middleware('can:view_polls')
                 ->name('polls.show');

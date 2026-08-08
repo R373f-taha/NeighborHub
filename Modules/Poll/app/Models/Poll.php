@@ -144,37 +144,7 @@ class Poll extends Model
             ->where('poll_option_id', $optionId)
             ->count();
     }
-   protected static function booted(): void
-    {
-        static::retrieved(function (Poll $poll) {
-            if ($poll->status === PollStatus::Active && $poll->ends_at && $poll->ends_at < now()) {
-                Log::info('⏰ Poll expired, auto-closing via booted', [
-                    'poll_id' => $poll->id,
-                    'poll_title' => $poll->title,
-                    'ends_at' => $poll->ends_at,
-                ]);
 
-                $poll->closeAutomatically();
-            }
-        });
-    }
-
-    public function closeAutomatically(): void
-    {
-        $this->update([
-            
-            'status' => PollStatus::Closed,
-            'closed_at' => now(),
-
-        ]);
-
-        event(new PollClosed($this));
-
-        Log::info('🔒 Poll auto-closed via booted', [
-            'poll_id' => $this->id,
-            'poll_title' => $this->title,
-        ]);
-    }
 
 
 }

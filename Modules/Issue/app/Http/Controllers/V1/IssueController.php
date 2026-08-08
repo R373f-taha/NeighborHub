@@ -26,7 +26,7 @@ use Modules\Issue\app\Models\Issue;
 use Modules\Issue\app\Services\IssueService;
 use Modules\Interaction\app\Http\Requests\Api\V1\StoreCommentRequest;
 use Modules\Interaction\app\Services\CommentService;
-
+use Modules\Community\app\Models\Community;
 class IssueController extends Controller
 {
 
@@ -64,32 +64,46 @@ class IssueController extends Controller
 
     }
 
-    public function store(
-        StoreIssueRequest $request,
-        int $communityId
-    ): IssueResource {
+public function store(
+    StoreIssueRequest $request,
+    int $communityId
+): IssueResource {
 
 
-        $issue = $this->createAction->execute(
-
-            IssueData::fromStoreRequest(
-                $request,
-                $communityId
-            )
-
-        );
+    $community = Community::findOrFail($communityId);
 
 
-        return new IssueResource(
+    if (
+        $request->user()->hasRole('resident')
+        &&
+        !$community->residents()
+            ->where('user_id', $request->user()->id)
+            ->exists()
+    ) {
 
-            $issue->load([
-                'category',
-                'reporter'
-            ])
-
-        );
+        abort(403, 'You are not a resident of this community.');
 
     }
+
+
+    $issue = $this->createAction->execute(
+
+        IssueData::fromStoreRequest(
+            $request,
+            $communityId
+        )
+
+    );
+
+
+    return new IssueResource(
+        $issue->load([
+            'category',
+            'reporter'
+        ])
+    );
+
+}
 
 public function show(
     int $communityId,
@@ -108,23 +122,21 @@ public function show(
     return new IssueResource($issue);
 }
 
-    public function update(
-        UpdateIssueRequest $request,
-        Issue $issue
-    ): IssueResource {
+public function update(
+    UpdateIssueRequest $request,
+    int $communityId,
+    int $issue
+): IssueResource {
 
+    $issue = Issue::findOrFail($issue);
 
-        $issue = $this->updateAction->execute(
+    $issue = $this->updateAction->execute(
+        $issue,
+        IssueData::fromUpdateRequest($request)
+    );
 
-            $issue,
-
-            IssueData::fromUpdateRequest($request)
-
-        );
-        return new IssueResource($issue);
-
-    }
-
+    return new IssueResource($issue);
+}
 
   public function assign(
     AssignIssueRequest $request,
