@@ -6,14 +6,12 @@ namespace Tests\Feature\Issues;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\Auth\app\Models\User;
-use Modules\Auth\Database\Seeders\RolePermissionSeeder;
 use Modules\Community\app\Models\Community;
 use Modules\Community\app\Models\CommunityManager;
 use Modules\Community\app\Models\Resident;
 use Modules\Community\app\Models\Unit;
 use Modules\Issue\app\Models\Issue;
 use Modules\Issue\app\Models\IssueCategory;
-use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
 abstract class IssueTestCase extends TestCase
@@ -37,8 +35,13 @@ abstract class IssueTestCase extends TestCase
     {
         parent::setUp();
 
-        $this->seed(RolePermissionSeeder::class);
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        // The official role/permission contract is provisioned once per
+        // database lifecycle by Tests\Support\RbacProvisioner (outside the
+        // per-test transaction), so it is already available here. Re-seeding it
+        // per test inside the RefreshDatabase transaction was the source of the
+        // MySQL deadlock (syncPermissions exclusive lock + permission-cache
+        // LOCK IN SHARE MODE reload in the same transaction) that cascaded into
+        // hundreds of "Unknown database" failures on contended machines.
 
         $this->communityA = Community::create(['name' => 'Community A', 'city' => 'C', 'address' => 'A', 'total_units' => 10, 'is_active' => true]);
         $this->communityB = Community::create(['name' => 'Community B', 'city' => 'C2', 'address' => 'A2', 'total_units' => 5, 'is_active' => true]);
