@@ -70,19 +70,23 @@ trait CacheableTraits
      * @param int|null $communityId
      * @return void
      */
-    protected function clearCache(?int $communityId): void
-    {
-        if ($communityId === null) {
-            Log::warning('clearCache called with null ID');
-            return;
-        }
-
-        Cache::tags($this->getCommunityTags($communityId))->flush();
-        Cache::tags(['communities_list'])->flush();
-
-        Log::info("Cache cleared for community ID: {$communityId} using tags");
+protected function clearCache(?int $communityId): void
+{
+    if ($communityId === null) {
+        Log::warning('clearCache called with null ID');
+        return;
     }
 
+    Cache::tags($this->getCommunityTags($communityId))->flush();
+
+    Log::info("Cache cleared for community ID: {$communityId}");
+}
+
+protected function clearListCache(): void
+{
+    Cache::tags(['communities_list'])->flush();
+    Log::info('Communities list cache cleared');
+}
     /**
      * Clear all community-related cache
      *
@@ -147,7 +151,8 @@ trait CacheableTraits
 
             //  Store with random TTL to prevent stampede
 
-            $randomTtl = $ttl + random_int(0, 60);
+
+            $randomTtl = $ttl + random_int(-300, 300);
             Cache::tags($tags)->put($key, $value, $randomTtl);
 
             Log::info("Cache rebuilt with lock for key: {$key}, TTL: {$randomTtl}");

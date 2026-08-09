@@ -13,10 +13,7 @@ Route::middleware([
 ])
     ->prefix('v1')
     ->group(function () {
-        Route::apiResource(
-            'communities',
-            CommunityController::class
-        )->names('community');
+
 
         Route::prefix('communities/{communityId}')
             ->group(function () {

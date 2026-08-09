@@ -53,6 +53,7 @@ class CommunityService
             }
 
             $this->clearCache($community->id);
+            $this->clearListCache();
 
             return $community;
         });
@@ -73,6 +74,7 @@ class CommunityService
             }
 
             $this->clearCache($communityId);
+            $this->clearListCache();
 
             return $community->fresh();
         });
@@ -86,6 +88,7 @@ class CommunityService
         $communityId = $community->id;
 
         $this->clearCache($communityId);
+        $this->clearListCache();
 
         return $community->delete();
     }
