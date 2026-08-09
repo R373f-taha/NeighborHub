@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\Notification\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Modules\Auth\app\Models\User;
 use Modules\Notification\app\Models\Notification;
 
 /**
@@ -15,12 +14,10 @@ class NotificationFactory extends Factory
 {
     protected $model = Notification::class;
 
-
     public function definition(): array
     {
         return [
-
-            'user_id' => User::factory(),
+            'user_id' => null,
 
             'title' => fake()->sentence(4),
 
@@ -42,16 +39,10 @@ class NotificationFactory extends Factory
                 ? now()
                 : null,
 
-
-            /*
-             * يتم تحديدها في Seeder
-             */
             'notifiable_type' => null,
-
             'notifiable_id' => null,
         ];
     }
-
 
     public function unread(): static
     {
@@ -59,7 +50,6 @@ class NotificationFactory extends Factory
             'read_at' => null,
         ]);
     }
-
 
     public function read(): static
     {

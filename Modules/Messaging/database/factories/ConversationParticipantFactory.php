@@ -9,7 +9,6 @@ use Modules\Auth\app\Models\User;
 use Modules\Messaging\app\Models\Conversation;
 use Modules\Messaging\app\Models\ConversationParticipant;
 
-
 /**
  * @extends Factory<ConversationParticipant>
  */
@@ -17,19 +16,27 @@ class ConversationParticipantFactory extends Factory
 {
     protected $model = ConversationParticipant::class;
 
-
     public function definition(): array
     {
         return [
-
-            'conversation_id' => Conversation::factory(),
-
-            'user_id' => User::factory(),
-
+            'conversation_id' => null,
+            'user_id' => null,
             'joined_at' => now(),
-
             'left_at' => null,
-
         ];
+    }
+
+    public function forConversation(Conversation $conversation): static
+    {
+        return $this->state([
+            'conversation_id' => $conversation->id,
+        ]);
+    }
+
+    public function forUser(User $user): static
+    {
+        return $this->state([
+            'user_id' => $user->id,
+        ]);
     }
 }

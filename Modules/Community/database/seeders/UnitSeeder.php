@@ -10,23 +10,44 @@ use Modules\Community\app\Models\Unit;
 
 class UnitSeeder extends Seeder
 {
+    private const TARGET = 1500;
+
     public function run(): void
     {
-        Community::query()
-            ->each(function (Community $community) {
-                
-                $existingCount = $community->units()->count();
-                $missing = max(0, $community->total_units - $existingCount);
+        $existing = Unit::count();
+        $missing = max(0, self::TARGET - $existing);
 
-                for ($i = 1; $i <= $missing; $i++) {
-                    $unitNumber = 'A-' . str_pad((string)($existingCount + $i), 4, '0', STR_PAD_LEFT);
-                    
-                    Unit::factory()->create([
-                        'community_id' => $community->id,
-                        'unit_number' => $unitNumber,
-                    ]);
-                }
+        if ($missing === 0) {
+            return;
+        }
 
-            });
+        $communities = Community::query()->get();
+
+        if ($communities->isEmpty()) {
+            return;
+        }
+
+        $counts = Unit::query()
+            ->selectRaw('community_id, COUNT(*) as total')
+            ->groupBy('community_id')
+            ->pluck('total', 'community_id');
+
+        foreach (range(1, $missing) as $i) {
+            $community = $communities[($i - 1) % $communities->count()];
+
+            $number = ($counts[$community->id] ?? 0) + 1;
+            $counts[$community->id] = $number;
+
+            Unit::factory()->create([
+                'community_id' => $community->id,
+                'unit_number' => 'A-' . str_pad((string) $number, 4, '0', STR_PAD_LEFT),
+            ]);
+        }
+
+        foreach ($communities as $community) {
+            $community->update([
+                'total_units' => $counts[$community->id] ?? 0,
+            ]);
+        }
     }
 }

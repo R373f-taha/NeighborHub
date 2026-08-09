@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Modules\Community\app\Models\Community;
 use Modules\Messaging\app\Models\Conversation;
 
-
 /**
  * @extends Factory<Conversation>
  */
@@ -16,12 +15,10 @@ class ConversationFactory extends Factory
 {
     protected $model = Conversation::class;
 
-
     public function definition(): array
     {
         return [
-
-            'community_id' => Community::factory(),
+            'community_id' => null,
 
             'type' => fake()->randomElement([
                 'direct',
@@ -29,12 +26,25 @@ class ConversationFactory extends Factory
                 'appeal',
             ]),
 
-
             'status' => fake()->randomElement([
                 'active',
                 'archived',
                 'closed',
             ]),
         ];
+    }
+
+    public function forCommunity(Community $community): static
+    {
+        return $this->state([
+            'community_id' => $community->id,
+        ]);
+    }
+
+    public function active(): static
+    {
+        return $this->state([
+            'status' => 'active',
+        ]);
     }
 }

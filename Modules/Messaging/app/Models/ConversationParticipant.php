@@ -11,8 +11,8 @@ class ConversationParticipant extends Model
 {
     use HasFactory;
 
-    
-    protected $fillable = ['conversation_id', 'user_id', 'joined_at', 'left_at'];
+
+    protected $fillable = ['conversation_id', 'user_id', 'joined_at', 'left_at', 'last_read_message_id',];
 
     protected $casts = [
         'last_read_message_id' => 'integer',
@@ -33,7 +33,7 @@ class ConversationParticipant extends Model
         return $this->belongsTo(User::class);
     }
 
-    
+
     public function lastReadMessage()
     {
         return $this->belongsTo(Message::class, 'last_read_message_id');

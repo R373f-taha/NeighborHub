@@ -16,53 +16,36 @@ class NotificationSeeder extends Seeder
     {
         $users = User::query()->get();
 
+        if ($users->isEmpty()) {
+            return;
+        }
+
+        $take = min(5, $users->count());
 
         Announcement::query()
-            ->each(function ($announcement) use ($users) {
+            ->each(function ($announcement) use ($users, $take): void {
 
-
-                foreach ($users->random(5) as $user) {
-
-                    Notification::factory()
-                        ->create([
-
-                            'user_id' => $user->id,
-
-                            'notifiable_type' => Announcement::class,
-
-                            'notifiable_id' => $announcement->id,
-
-                            'type' => 'announcement',
-
-                        ]);
-
+                foreach ($users->random($take) as $user) {
+                    Notification::factory()->create([
+                        'user_id' => $user->id,
+                        'notifiable_type' => Announcement::class,
+                        'notifiable_id' => $announcement->id,
+                        'type' => 'announcement',
+                    ]);
                 }
-
             });
 
-
-
         Issue::query()
-            ->each(function ($issue) use ($users) {
+            ->each(function ($issue) use ($users, $take): void {
 
-
-                foreach ($users->random(5) as $user) {
-
-                    Notification::factory()
-                        ->create([
-
-                            'user_id' => $user->id,
-
-                            'notifiable_type' => Issue::class,
-
-                            'notifiable_id' => $issue->id,
-
-                            'type' => 'issue',
-
-                        ]);
-
+                foreach ($users->random($take) as $user) {
+                    Notification::factory()->create([
+                        'user_id' => $user->id,
+                        'notifiable_type' => Issue::class,
+                        'notifiable_id' => $issue->id,
+                        'type' => 'issue',
+                    ]);
                 }
-
             });
     }
 }

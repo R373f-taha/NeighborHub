@@ -10,20 +10,25 @@ use Modules\Poll\app\Models\PollOption;
 
 class PollOptionSeeder extends Seeder
 {
+    private const OPTIONS_PER_POLL = 4;
+
     public function run(): void
     {
-        Poll::query()
-            ->each(function ($poll) {
+        Poll::query()->each(function (Poll $poll): void {
+            $existingCount = $poll->options()->count();
 
+            $missing = max(
+                0,
+                self::OPTIONS_PER_POLL - $existingCount
+            );
 
+            if ($missing > 0) {
                 PollOption::factory()
-                    ->count(4)
+                    ->count($missing)
                     ->create([
-
                         'poll_id' => $poll->id,
-
                     ]);
-
-            });
+            }
+        });
     }
 }

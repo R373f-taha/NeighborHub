@@ -23,14 +23,10 @@ class CommunityFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->company() . ' Community',
-
+            'name' => fake()->unique()->company() . ' Community',
             'city' => fake()->city(),
-
             'address' => fake()->address(),
-
-            'total_units' => fake()->numberBetween(20, 150),
-
+            'total_units' => 0,
             'is_active' => fake()->boolean(90),
         ];
     }

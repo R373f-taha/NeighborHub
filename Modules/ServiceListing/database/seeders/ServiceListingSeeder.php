@@ -10,22 +10,25 @@ use Modules\ServiceListing\app\Models\ServiceListing;
 
 class ServiceListingSeeder extends Seeder
 {
+    private const PER_COMMUNITY = 10;
+
     public function run(): void
     {
-        Community::with('residents')
-            ->get()
-            ->each(function (Community $community) {
+        Community::query()->each(function (Community $community): void {
+            $residents = $community->residents()
+                ->where('status', 'active')
+                ->get();
 
-                if ($community->residents->isEmpty()) {
-                    return;
-                }
+            if ($residents->isEmpty()) {
+                return;
+            }
 
-                ServiceListing::factory()
-                    ->count(10)
-                    ->create([
-                        'community_id' => $community->id,
-                        'resident_id'  => $community->residents->random()->id,
-                    ]);
-            });
+            ServiceListing::factory()
+                ->count(self::PER_COMMUNITY)
+                ->create([
+                    'community_id' => $community->id,
+                    'resident_id' => $residents->random()->id,
+                ]);
+        });
     }
 }

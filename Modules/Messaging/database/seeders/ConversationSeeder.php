@@ -10,17 +10,28 @@ use Modules\Messaging\app\Models\Conversation;
 
 class ConversationSeeder extends Seeder
 {
+    private const TARGET_PER_COMMUNITY = 6;
+
     public function run(): void
     {
         Community::query()
-            ->each(function (Community $community) {
+            ->each(function (Community $community): void {
+
+                $existing = $community->conversations()->count();
+
+                $missing = max(
+                    0,
+                    self::TARGET_PER_COMMUNITY - $existing
+                );
+
+                if ($missing === 0) {
+                    return;
+                }
 
                 Conversation::factory()
-                    ->count(5)
-                    ->create([
-                        'community_id' => $community->id,
-                    ]);
-
+                    ->count($missing)
+                    ->forCommunity($community)
+                    ->create();
             });
     }
 }

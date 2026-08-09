@@ -11,6 +11,8 @@ use Modules\Community\app\Models\CommunityManager;
 
 class CommunityManagerSeeder extends Seeder
 {
+    private const MANAGERS_PER_COMMUNITY = 2;
+
     public function run(): void
     {
         $managers = User::query()
@@ -21,16 +23,30 @@ class CommunityManagerSeeder extends Seeder
             return;
         }
 
-        Community::query()
-            ->each(function (Community $community) use ($managers) {
+        Community::query()->each(function (Community $community) use ($managers): void {
+            $existing = CommunityManager::query()
+                ->where('community_id', $community->id)
+                ->pluck('manager_id');
 
-                $manager = $managers->random();
+            $missing = max(
+                0,
+                self::MANAGERS_PER_COMMUNITY - $existing->count()
+            );
 
-                CommunityManager::updateOrCreate([
-                    'community_id' => $community->id,
-                    'manager_id' => $manager->id,
-                ]);
+            if ($missing === 0) {
+                return;
+            }
 
-            });
+            $managers
+                ->whereNotIn('id', $existing)
+                ->shuffle()
+                ->take($missing)
+                ->each(function (User $manager) use ($community): void {
+                    CommunityManager::create([
+                        'community_id' => $community->id,
+                        'manager_id' => $manager->id,
+                    ]);
+                });
+        });
     }
 }

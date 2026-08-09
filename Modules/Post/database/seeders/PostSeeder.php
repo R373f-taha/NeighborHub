@@ -10,31 +10,51 @@ use Modules\Post\app\Models\Post;
 
 class PostSeeder extends Seeder
 {
-    private const TARGET_PER_COMMUNITY = 10;
+    private const TARGET = 1000;
+
+    private const PER_COMMUNITY = 20;
 
     public function run(): void
     {
-        if (app()->environment('production')) {
+        $existing = Post::count();
+        $missing = max(0, self::TARGET - $existing);
+
+        if ($missing === 0) {
             return;
         }
 
-        Community::query()->each(function (Community $community): void {
+        Community::query()->each(function (Community $community) use (&$missing): void {
+            if ($missing === 0) {
+                return;
+            }
+
             $residents = $community->residents()
                 ->where('status', 'active')
-                ->get(['residents.id']);
+                ->get();
 
             if ($residents->isEmpty()) {
                 return;
             }
 
-            $missing = max(0, self::TARGET_PER_COMMUNITY - $community->posts()->count());
+            $existingInCommunity = $community->posts()->count();
 
-            for ($i = 0; $i < $missing; $i++) {
-                Post::factory()
-                    ->forCommunity($community)
-                    ->forResident($residents->random())
-                    ->create();
+            $needed = min(
+                max(0, self::PER_COMMUNITY - $existingInCommunity),
+                $missing
+            );
+
+            if ($needed === 0) {
+                return;
             }
+
+            Post::factory()
+                ->count($needed)
+                ->create([
+                    'community_id' => $community->id,
+                    'resident_id' => $residents->random()->id,
+                ]);
+
+            $missing -= $needed;
         });
     }
 }

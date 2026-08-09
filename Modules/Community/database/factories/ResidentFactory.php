@@ -19,59 +19,57 @@ class ResidentFactory extends Factory
 
     public function definition(): array
     {
-        $joinedAt = fake()->dateTimeBetween('-2 years', '-1 month');
-
         return [
             'user_id' => User::factory()->resident(),
-            'unit_id' => Unit::factory()->for(Community::factory()),
+            'unit_id' => Unit::factory(),
             'residence_type' => fake()->randomElement(['owner', 'tenant']),
-            'status' => fake()->randomElement(['pending', 'active', 'suspended', 'rejected']),
-            'joined_at' => $joinedAt,
-            'left_at' => fake()->boolean(10)
-                ? fake()->dateTimeBetween($joinedAt, 'now')
-                : null,
+            'status' => 'pending',
+            'joined_at' => fake()->dateTimeBetween('-2 years', '-1 month'),
+            'left_at' => null,
             'current_marker' => false,
             'approved_by' => null,
+            'community_id' => Community::factory(),
         ];
     }
 
     public function configure(): static
     {
-        return $this->afterMaking(function (Resident $resident) {
+        return $this->afterMaking(function (Resident $resident): void {
             if ($resident->unit_id && ! $resident->community_id) {
-                $communityId = Unit::where('id', $resident->unit_id)->value('community_id');
-                if ($communityId !== null) {
-                    $resident->community_id = $communityId;
-                }
+                $resident->community_id = Unit::query()
+                    ->whereKey($resident->unit_id)
+                    ->value('community_id');
             }
         });
     }
 
     public function active(): static
     {
-        return $this->state(fn () => [
+        return $this->state([
             'status' => 'active',
             'left_at' => null,
+            'current_marker' => true,
         ]);
     }
 
     public function pending(): static
     {
-        return $this->state(fn () => [
+        return $this->state([
             'status' => 'pending',
+            'current_marker' => false,
         ]);
     }
 
     public function owner(): static
     {
-        return $this->state(fn () => [
+        return $this->state([
             'residence_type' => 'owner',
         ]);
     }
 
     public function tenant(): static
     {
-        return $this->state(fn () => [
+        return $this->state([
             'residence_type' => 'tenant',
         ]);
     }

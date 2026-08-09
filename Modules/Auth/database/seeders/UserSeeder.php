@@ -10,68 +10,55 @@ use Modules\Auth\app\Models\User;
 
 class UserSeeder extends Seeder
 {
+    private const TARGET_TOTAL = 1000;
+
+    private const TARGET_SUPER_ADMINS = 1;
+    private const TARGET_MANAGERS = 100;
+    private const TARGET_RESIDENTS = 849;
+    private const TARGET_PROVIDERS = 50;
+
     public function run(): void
     {
-        // Super Admin
-        $admin = User::updateOrCreate(
-            ['email' => 'admin@neighborhub.test'],
-            [
-                'name' => 'Super Admin',
-                'password' => bcrypt('password'),
-                'role' => UserRole::SuperAdmin,
-                'is_active' => true,
-            ]
+        $this->createMissingUsers(
+            UserRole::SuperAdmin,
+            self::TARGET_SUPER_ADMINS,
+            'superAdmin'
         );
 
-        $admin->assignRole(UserRole::SuperAdmin->value);
-
-        // Development Postman Account
-        $postman = User::updateOrCreate(
-            ['email' => 'postman@neighborhub.local'],
-            [
-                'name' => 'Postman Resident',
-                'password' => bcrypt('password'),
-                'role' => UserRole::Resident,
-                'is_active' => true,
-            ]
+        $this->createMissingUsers(
+            UserRole::Manager,
+            self::TARGET_MANAGERS,
+            'manager'
         );
 
-        $postman->assignRole(UserRole::Resident->value);
+        $this->createMissingUsers(
+            UserRole::Resident,
+            self::TARGET_RESIDENTS,
+            'resident'
+        );
 
-        // Managers
-        $existingManagers = User::where('role', UserRole::Manager)->count();
-        $missingManagers = max(0, 5 - $existingManagers);
+        $this->createMissingUsers(
+            UserRole::Provider,
+            self::TARGET_PROVIDERS,
+            'provider'
+        );
+    }
 
-        if ($missingManagers > 0) {
-            User::factory()
-                ->manager()
-                ->count($missingManagers)
-                ->create();
+    private function createMissingUsers(
+        UserRole $role,
+        int $target,
+        string $factoryState
+    ): void {
+        $existing = User::where('role', $role)->count();
+        $missing = max(0, $target - $existing);
+
+        if ($missing === 0) {
+            return;
         }
 
-        // Residents
-        $existingResidents = User::where('role', UserRole::Resident)
-            ->where('email', '!=', 'postman@neighborhub.local')
-            ->count();
-
-        $missingResidents = max(0, 30 - $existingResidents);
-
-        if ($missingResidents > 0) {
-            User::factory()
-                ->resident()
-                ->count($missingResidents)
-                ->create();
-        }
-
-        // Providers
-        $existingProviders = User::where('role', UserRole::Provider)->count();
-        $missingProviders = max(0, 10 - $existingProviders);
-
-        if ($missingProviders > 0) {
-            User::factory()
-                ->provider()
-                ->count($missingProviders)
-                ->create();
-        }
+        User::factory()
+            ->{$factoryState}()
+            ->count($missing)
+            ->create();
     }
 }
