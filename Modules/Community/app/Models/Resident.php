@@ -11,7 +11,8 @@ use Modules\ServiceListing\Models\ServiceListing;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Modules\Poll\app\Models\PollVote as ModelsPollVote;
 use Modules\ServiceListing\app\Models\ServiceListing as ModelsServiceListing;
-
+use  Modules\Community\Database\Factories\ResidentFactory;
+use Modules\Community\app\Models\Community;
 class Resident extends Model
 {
     use HasFactory;
@@ -31,7 +32,7 @@ class Resident extends Model
 
     protected static function newFactory()
     {
-        return \Modules\Community\Database\Factories\ResidentFactory::new();
+        return ResidentFactory::new();
     }
 
 

@@ -8,14 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
 use Modules\Community\app\Models\Announcement;
-use Modules\Community\app\Models\Community;
 use Modules\Interaction\app\Models\Comment;
 use Modules\Post\app\Models\Post;
 
 class CommentSeeder extends Seeder
 {
-    private const COMMENTS_PER_COMMENTABLE = 5;
-    private const REPLIES_PER_COMMENTABLE = 2;
+    private const TARGET = 3000;
 
     public function run(): void
     {
@@ -23,86 +21,99 @@ class CommentSeeder extends Seeder
             return;
         }
 
-        $residentsByCommunity = [];
+        $missing = max(0, self::TARGET - Comment::count());
 
-        $residentsFor = function (Community $community) use (&$residentsByCommunity): Collection {
-            return $residentsByCommunity[$community->getKey()] ??= $community->residents()
-                ->where('status', 'active')
-                ->with('user:id,name')
-                ->get(['residents.id', 'residents.user_id']);
-        };
+        if ($missing === 0) {
+            return;
+        }
 
-        Post::query()
-            ->with('community:id,name')
-            ->chunkById(200, function (Collection $posts) use ($residentsFor): void {
-                foreach ($posts as $post) {
-                    $community = $post->community;
+        $this->seedFor(Post::class, $missing);
+
+        $missing = max(0, self::TARGET - Comment::count());
+
+        if ($missing === 0) {
+            return;
+        }
+
+        $this->seedFor(Announcement::class, $missing);
+    }
+
+    private function seedFor(string $modelClass, int $missing): void
+    {
+        $modelClass::query()
+            ->with('community')
+            ->chunkById(200, function (Collection $items) use (&$missing): void {
+                foreach ($items as $item) {
+                    if ($missing <= 0) {
+                        return;
+                    }
+
+                    $community = $item->community;
 
                     if ($community === null) {
                         continue;
                     }
 
-                    $residents = $residentsFor($community);
+                    $residents = $community->residents()
+                        ->where('status', 'active')
+                        ->with('user')
+                        ->get();
 
-                    if ($residents->isNotEmpty()) {
-                        $this->seedCommentable($post, $residents);
-                    }
-                }
-            });
-
-        Announcement::query()
-            ->with('community:id,name')
-            ->chunkById(200, function (Collection $announcements) use ($residentsFor): void {
-                foreach ($announcements as $announcement) {
-                    $community = $announcement->community;
-
-                    if ($community === null) {
+                    if ($residents->isEmpty()) {
                         continue;
                     }
 
-                    $residents = $residentsFor($community);
-
-                    if ($residents->isNotEmpty()) {
-                        $this->seedCommentable($announcement, $residents);
-                    }
+                    $this->createComments($item, $residents, $missing);
                 }
             });
     }
 
-    /**
-     * @param  Collection<int, \Modules\Community\app\Models\Resident>  $residents
-     */
-    private function seedCommentable(Model $commentable, Collection $residents): void
-    {
-        $existingTopLevel = Comment::query()
+    private function createComments(
+        Model $commentable,
+        Collection $residents,
+        int &$missing
+    ): void {
+        $existing = Comment::query()
             ->where('commentable_type', $commentable->getMorphClass())
             ->where('commentable_id', $commentable->getKey())
-            ->whereNull('parent_id')
             ->count();
 
-        $missing = max(0, self::COMMENTS_PER_COMMENTABLE - $existingTopLevel);
+        $count = min(
+            random_int(1, 4),
+            $missing
+        );
 
-        $parents = Collection::make();
+        if ($existing > 0) {
+            return;
+        }
 
-        for ($i = 0; $i < $missing; $i++) {
-            $author = $residents->random()->user;
+        $parents = [];
+
+        for ($i = 0; $i < $count; $i++) {
+            $resident = $residents->random();
 
             $comment = Comment::factory()
                 ->forCommentable($commentable)
-                ->create(['author_id' => $author->getKey()]);
+                ->create([
+                    'author_id' => $resident->user_id,
+                ]);
 
-            if ($i < self::REPLIES_PER_COMMENTABLE) {
-                $parents->push($comment);
-            }
+            $parents[] = $comment;
+            $missing--;
         }
 
-        foreach ($parents as $parent) {
-            $replyAuthor = $residents->random()->user;
+        if ($missing > 0 && count($parents) > 0 && random_int(1, 100) <= 30) {
+            $parent = $parents[array_rand($parents)];
+            $resident = $residents->random();
 
             Comment::factory()
                 ->forCommentable($commentable)
                 ->reply($parent)
-                ->create(['author_id' => $replyAuthor->getKey()]);
+                ->create([
+                    'author_id' => $resident->user_id,
+                ]);
+
+            $missing--;
         }
     }
 }

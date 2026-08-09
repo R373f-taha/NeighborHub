@@ -84,6 +84,11 @@ class Community extends Model
         return $this->hasMany(Comment::class);
     }
 
+    public function conversations()
+{
+    return $this->hasMany(Conversation::class);
+}
+
 
 
 

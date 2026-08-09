@@ -13,66 +13,72 @@ use Modules\Issue\app\Models\IssueCategory;
 
 class IssueSeeder extends Seeder
 {
+    private const TARGET = 1000;
+
     public function run(): void
     {
-        $residents = User::role('resident')->get();
+        $missing = max(0, self::TARGET - Issue::count());
 
-        $providers = User::role('provider')->get();
+        if ($missing === 0) {
+            return;
+        }
+
+        $providers = User::query()
+            ->where('role', 'provider')
+            ->get();
 
         $categories = IssueCategory::query()
             ->where('is_active', true)
             ->get();
 
-        if (
-            $residents->isEmpty() ||
-            $categories->isEmpty()
-        ) {
+        if ($categories->isEmpty()) {
             return;
         }
 
-        Community::query()->each(
-            function (Community $community) use (
-                $residents,
-                $providers,
-                $categories
-            ) {
-                for ($i = 0; $i < 10; $i++) {
-
-                    $status = fake()->randomElement(
-                        IssueStatus::cases()
-                    );
-
-                    $assignedTo = null;
-
-                    /*
-                     * Issues with these statuses
-                     * must have a provider assigned.
-                     */
-                    if (
-                        in_array($status, [
-                            IssueStatus::ASSIGNED,
-                            IssueStatus::IN_PROGRESS,
-                            IssueStatus::RESOLVED,
-                            IssueStatus::CLOSED,
-                        ], true)
-                        && $providers->isNotEmpty()
-                    ) {
-                        $assignedTo = $providers->random()->id;
-                    }
-
-                    Issue::factory()->create([
-                        'community_id' => $community->id,
-
-                        'category_id' => $categories->random()->id,
-
-                        'reported_by' => $residents->random()->id,
-
-                        'status' => $status,
-
-                        'assigned_to' => $assignedTo,
-                    ]);
-                }
+        Community::query()->each(function (Community $community) use (
+            $providers,
+            $categories,
+            &$missing
+        ): void {
+            if ($missing <= 0) {
+                return;
             }
-        );
+
+            $residents = $community->residents()
+                ->where('status', 'active')
+                ->get();
+
+            if ($residents->isEmpty()) {
+                return;
+            }
+
+            $needed = min(
+                20,
+                $missing
+            );
+
+            for ($i = 0; $i < $needed; $i++) {
+                $status = fake()->randomElement(IssueStatus::cases());
+
+                $assignedTo = null;
+
+                if (
+                    $status !== IssueStatus::OPEN &&
+                    $providers->isNotEmpty()
+                ) {
+                    $assignedTo = $providers->random()->id;
+                }
+
+                Issue::factory()->create([
+                    'community_id' => $community->id,
+                    'category_id' => $categories->random()->id,
+                    'reported_by' => $residents->random()->user_id,
+                    'status' => $status,
+                    'assigned_to' => $assignedTo,
+                ]);
+
+                $missing--;
+            }
+        });
     }
 }

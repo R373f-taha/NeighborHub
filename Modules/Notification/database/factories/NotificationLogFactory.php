@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\Notification\Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Modules\Notification\app\Models\Notification;
 use Modules\Notification\app\Models\NotificationLog;
 
 /**
@@ -15,12 +14,10 @@ class NotificationLogFactory extends Factory
 {
     protected $model = NotificationLog::class;
 
-
     public function definition(): array
     {
         return [
-
-            'notification_id' => Notification::factory(),
+            'notification_id' => null,
 
             'channel' => fake()->randomElement([
                 'email',
@@ -29,14 +26,12 @@ class NotificationLogFactory extends Factory
                 'database',
             ]),
 
-
             'status' => fake()->randomElement([
                 'pending',
                 'sent',
                 'failed',
                 'delivered',
             ]),
-
 
             'sent_at' => fake()->boolean(70)
                 ? now()

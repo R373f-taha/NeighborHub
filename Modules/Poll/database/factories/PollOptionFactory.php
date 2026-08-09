@@ -15,13 +15,10 @@ class PollOptionFactory extends Factory
 {
     protected $model = PollOption::class;
 
-
     public function definition(): array
     {
         return [
-
             'poll_id' => Poll::factory(),
-
             'text' => fake()->randomElement([
                 'Yes',
                 'No',

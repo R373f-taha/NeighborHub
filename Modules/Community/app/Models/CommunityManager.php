@@ -9,26 +9,20 @@ use Modules\Auth\app\Models\User;
 
 class CommunityManager extends Model
 {
-
     protected $table = 'community_mangers';
-
-
-    public $timestamps = false;
-
 
     protected $fillable = [
         'community_id',
         'manager_id',
     ];
-    
+
     public function community()
     {
         return $this->belongsTo(
-            Community::class
+            Community::class,
+            'community_id'
         );
     }
-
-
 
     public function manager()
     {

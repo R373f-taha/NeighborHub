@@ -11,30 +11,25 @@ use Modules\Poll\app\Models\Poll;
 
 class PollSeeder extends Seeder
 {
+    private const PER_COMMUNITY = 5;
+
     public function run(): void
     {
         $managers = User::query()
-            ->where('role','manager')
-            ->get();
+            ->where('role', 'manager')
+            ->pluck('id');
 
+        if ($managers->isEmpty()) {
+            return;
+        }
 
-        Community::query()
-            ->each(function ($community) use ($managers) {
-
-
-                Poll::factory()
-                    ->count(5)
-                    ->create([
-
-                        'community_id' => $community->id,
-
-                        'created_by' => $managers->random()->id,
-
-                        // 'colsed_by_manager' =>
-                        //     $managers->random()->id,
-
-                    ]);
-
-            });
+        Community::query()->each(function (Community $community) use ($managers): void {
+            Poll::factory()
+                ->count(self::PER_COMMUNITY)
+                ->create([
+                    'community_id' => $community->id,
+                    'created_by' => $managers->random(),
+                ]);
+        });
     }
 }

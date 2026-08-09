@@ -14,20 +14,33 @@ use Modules\Community\app\Models\CommunityManager;
  */
 class CommunityManagerFactory extends Factory
 {
-    /**
-     * @var class-string<CommunityManager>
-     */
     protected $model = CommunityManager::class;
 
-    /**
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
         return [
-            'community_id' => Community::factory(),
+            'community_id' => Community::query()
+                ->inRandomOrder()
+                ->value('id'),
 
-            'manager_id' => User::factory()->manager(),
+            'manager_id' => User::query()
+                ->where('role', 'manager')
+                ->inRandomOrder()
+                ->value('id'),
         ];
+    }
+
+    public function forCommunity(Community $community): static
+    {
+        return $this->state([
+            'community_id' => $community->id,
+        ]);
+    }
+
+    public function forManager(User $manager): static
+    {
+        return $this->state([
+            'manager_id' => $manager->id,
+        ]);
     }
 }

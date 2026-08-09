@@ -1,30 +1,30 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Modules\Issue\Database\Seeders;
+
 use Illuminate\Database\Seeder;
 use Modules\Issue\app\Models\IssueCategory;
 
-
 class IssueCategorySeeder extends Seeder
 {
+    private const CATEGORIES = [
+        'Plumbing',
+        'Electricity',
+        'Elevator',
+        'Cleaning',
+        'Security',
+        'Other',
+    ];
+
     public function run(): void
     {
-        $categories = [
-            'Plumbing',
-            'Electricity',
-            'Elevator',
-            'Cleaning',
-            'Security',
-            'Other',
-        ];
-
-
-        foreach ($categories as $category) {
-
-            IssueCategory::firstOrCreate([
-                'name' => $category,
-            ]);
-
+        foreach (self::CATEGORIES as $name) {
+            IssueCategory::firstOrCreate(
+                ['name' => $name],
+                ['is_active' => true]
+            );
         }
     }
 }
