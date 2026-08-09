@@ -62,6 +62,13 @@ final class TestDatabaseManager
         DB::purge('mysql');
 
         self::migrate();
+
+        // Publish the official RBAC contract (roles/permissions) once per
+        // database lifecycle, outside any per-test transaction. Done here so a
+        // mid-suite rebuild (see TestInfrastructureSafetyTest) re-provisions it
+        // deterministically, and so the contract is available before the very
+        // first test regardless of which suite runs first.
+        RbacProvisioner::provision();
     }
 
     public static function isProvisioned(): bool

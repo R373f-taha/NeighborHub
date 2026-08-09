@@ -6,13 +6,11 @@ namespace Tests\Feature\Announcements;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Modules\Auth\app\Models\User;
-use Modules\Auth\Database\Seeders\RolePermissionSeeder;
 use Modules\Community\app\Models\Announcement;
 use Modules\Community\app\Models\Community;
 use Modules\Community\app\Models\CommunityManager;
 use Modules\Community\app\Models\Resident;
 use Modules\Community\app\Models\Unit;
-use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
 abstract class AnnouncementTestCase extends TestCase
@@ -34,8 +32,10 @@ abstract class AnnouncementTestCase extends TestCase
     {
         parent::setUp();
 
-        $this->seed(RolePermissionSeeder::class);
-        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        // The role/permission contract is provisioned once per database
+        // lifecycle by Tests\Support\RbacProvisioner, outside the per-test
+        // transaction, so the api-guard permissions the Community routes gate
+        // on (can:view_announcements, etc.) are already available.
 
         $this->communityA = Community::create(['name' => 'Community A', 'city' => 'C', 'address' => 'A', 'total_units' => 10, 'is_active' => true]);
         $this->communityB = Community::create(['name' => 'Community B', 'city' => 'C2', 'address' => 'A2', 'total_units' => 5, 'is_active' => true]);
