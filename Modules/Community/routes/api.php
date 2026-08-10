@@ -24,21 +24,11 @@ Route::middleware([
                 */
 
 
-                Route::get(
-                    'announcements',
-                    [AnnouncementController::class, 'index']
-                )->middleware([
-                     'resident.of.community',
-                    'can:view_announcements',
-                    'throttle:60,60',
-                ]);
-
                 // List Announcements
                 Route::get(
                     'announcements',
                     [AnnouncementController::class, 'index']
                 )->middleware([
-                    'residentOfCommunity',
                     'can:view_announcements',
                     'throttle:60,60',
                 ]);
@@ -60,7 +50,6 @@ Route::middleware([
                     'announcements/{announcement}',
                     [AnnouncementController::class, 'show']
                 )->middleware([
-                    'residentOfCommunity',
                     'can:view_announcements',
                     'throttle:60,60',
                 ]);

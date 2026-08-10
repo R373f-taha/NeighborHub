@@ -64,7 +64,7 @@ Route::middleware('auth:sanctum')
                     '/{issue}/status',
                     [IssueController::class, 'updateStatus']
                 )->middleware([
-                    'managerOrSuperAdmin',
+                    'managerSuperAdminOrProvider',
                     'can:update_issue_status',
                 ]);
 
@@ -73,7 +73,7 @@ Route::middleware('auth:sanctum')
                     '/{issue}/updates',
                     [IssueController::class, 'addUpdate']
                 )->middleware([
-                    'managerOrSuperAdmin',
+                    'managerSuperAdminOrProvider',
                     'can:add_issue_update',
                 ]);
 

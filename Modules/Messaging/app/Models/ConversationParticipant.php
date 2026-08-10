@@ -12,7 +12,7 @@ class ConversationParticipant extends Model
     use HasFactory;
 
 
-    protected $fillable = ['conversation_id', 'user_id', 'joined_at', 'left_at', 'last_read_message_id',];
+    protected $fillable = ['conversation_id', 'user_id', 'joined_at', 'left_at'];
 
     protected $casts = [
         'last_read_message_id' => 'integer',

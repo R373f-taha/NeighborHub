@@ -21,7 +21,9 @@ class IssueStatusLogResource extends JsonResource
 
             'note' => $this->note,
 
-            'changed_by' => [
+            'changed_by' => $this->changer?->id,
+
+            'changer' => [
                 'id' => $this->changer?->id,
                 'name' => $this->changer?->name,
             ],

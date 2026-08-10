@@ -101,7 +101,7 @@ class AuthFoundationTest extends TestCase
 
         $hasCommunityIndex = $routes->contains(fn ($r) => str_contains($r->uri(), 'communities') && in_array('GET', $r->methods()));
         $this->assertTrue($hasCommunityIndex);
-        $this->assertTrue(Route::has('poll.index'));
+        $this->assertTrue(Route::has('polls.index'));
     }
 
     public function test_no_auths_resource_stub_route_is_registered(): void

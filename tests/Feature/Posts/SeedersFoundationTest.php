@@ -27,7 +27,9 @@ class SeedersFoundationTest extends TestCase
         (new PostSeeder())->run();
 
         $community = $community->fresh();
-        $this->assertSame(10, $community->posts()->count());
+        // PER_COMMUNITY is 20 (see PostSeeder::PER_COMMUNITY), raised from 10 by
+        // the "Increase seeders and factories data volume" commit (dcbd9db).
+        $this->assertSame(20, $community->posts()->count());
 
         $community->posts->each(function (Post $post) use ($community): void {
             $this->assertSame($community->id, $post->community_id);

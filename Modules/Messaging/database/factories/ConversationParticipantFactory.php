@@ -18,9 +18,12 @@ class ConversationParticipantFactory extends Factory
 
     public function definition(): array
     {
+        // conversation_id and user_id are NOT NULL FKs; provide valid defaults
+        // so the factory can create a record standalone. forConversation() and
+        // forUser() override these, so seeders are unaffected.
         return [
-            'conversation_id' => null,
-            'user_id' => null,
+            'conversation_id' => Conversation::factory(),
+            'user_id' => User::factory(),
             'joined_at' => now(),
             'left_at' => null,
         ];

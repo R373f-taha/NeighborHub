@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Feature\Poll;
 
 use Tests\TestCase;
-use Modules\Poll\App\Transformers\PollResource;
+use Modules\Poll\app\Transformers\PollResource;
 use Modules\Poll\app\Models\Poll;
 
 /**
