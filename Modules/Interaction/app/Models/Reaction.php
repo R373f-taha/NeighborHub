@@ -14,7 +14,9 @@ class Reaction extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['type'];
+    // user_id is set server-side from the authenticated user by the reaction
+    // actions (never from client input); it must be mass-assignable for them.
+    protected $fillable = ['type', 'user_id'];
 
     protected $casts = [
         'type' => ReactionType::class,

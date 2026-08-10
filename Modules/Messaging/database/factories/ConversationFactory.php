@@ -18,7 +18,10 @@ class ConversationFactory extends Factory
     public function definition(): array
     {
         return [
-            'community_id' => null,
+            // community_id is a NOT NULL FK; provide a valid default so the
+            // factory can create a record standalone. forCommunity() overrides
+            // this, so seeders are unaffected.
+            'community_id' => Community::factory(),
 
             'type' => fake()->randomElement([
                 'direct',

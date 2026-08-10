@@ -119,12 +119,18 @@ public function destroy(
     ]);
 }
    public function react(
-    int $communityId,
-    Announcement $announcement,
-    ReactAnnouncementRequest $request,
-    ReactToAnnouncementAction $action
-): JsonResponse {
+       int $communityId,
+       $announcement,
+       ReactAnnouncementRequest $request,
+       ReactToAnnouncementAction $action
+   ): JsonResponse {
 
+        $announcement = Announcement::findOrFail($announcement);
+
+        abort_if(
+            (int) $announcement->community_id !== (int) $communityId,
+            404
+        );
 
         $this->authorize(
             'react',

@@ -22,6 +22,7 @@ use Modules\Issue\app\Http\Requests\V1\UpdateIssueStatusRequest;
 use Modules\Issue\app\Http\Requests\V1\AddIssueLogNoteRequest;
 use Modules\Issue\app\Http\Resources\V1\IssueResource;
 use Modules\Issue\app\Http\Resources\V1\IssueCollection;
+use Modules\Issue\app\Http\Resources\V1\IssueStatusLogResource;
 use Modules\Issue\app\Models\Issue;
 use Modules\Issue\app\Services\IssueService;
 use Modules\Interaction\app\Http\Requests\Api\V1\StoreCommentRequest;
@@ -110,7 +111,7 @@ public function show(
     int $issue
 ): IssueResource {
 
-    $issue = Issue::findOrFail($issue);
+    $issue = Issue::where('community_id', $communityId)->findOrFail($issue);
 
     $issue->load([
         'category',
@@ -128,7 +129,7 @@ public function update(
     int $issue
 ): IssueResource {
 
-    $issue = Issue::findOrFail($issue);
+    $issue = Issue::where('community_id', $communityId)->findOrFail($issue);
 
     $issue = $this->updateAction->execute(
         $issue,
@@ -144,7 +145,7 @@ public function update(
     int $issue
 ): IssueResource
 {
-    $issue = Issue::findOrFail($issue);
+    $issue = Issue::where('community_id', $communityId)->findOrFail($issue);
 
     $issue = $this->assignAction->execute(
         $issue,
@@ -159,7 +160,7 @@ public function updateStatus(
     int $issue
 ): IssueResource
 {
-    $issue = Issue::findOrFail($issue);
+    $issue = Issue::where('community_id', $communityId)->findOrFail($issue);
 
     $issue = $this->statusAction->execute(
         $issue,
@@ -176,7 +177,7 @@ public function addUpdate(
     int $issue
 ): JsonResponse {
 
-    $issue = Issue::findOrFail($issue);
+    $issue = Issue::where('community_id', $communityId)->findOrFail($issue);
 
     $this->logAction->execute(
         $issue,
@@ -192,14 +193,21 @@ public function addUpdate(
     int $issue
 ): JsonResponse
 {
-    $issue = Issue::findOrFail($issue);
+    $issue = Issue::where('community_id', $communityId)->findOrFail($issue);
 
+    $logs = $issue
+        ->statusLogs()
+        ->with('changer')
+        ->latest()
+        ->get();
+
+    // Serialize via the dedicated resource (safe "changer" subset) while keeping
+    // the endpoint's flat-array contract. Returning the raw collection would
+    // serialize the full User for "changer", leaking email/phone/remember_token.
     return response()->json(
-        $issue
-            ->statusLogs()
-            ->with('changer')
-            ->latest()
-            ->get()
+        $logs
+            ->map(fn ($log) => (new IssueStatusLogResource($log))->resolve(request()))
+            ->values()
     );
 }
 public function destroy(
@@ -207,7 +215,7 @@ public function destroy(
     int $issue
 ): JsonResponse {
 
-    $issue = Issue::findOrFail($issue);
+    $issue = Issue::where('community_id', $communityId)->findOrFail($issue);
 
     $this->deleteAction->execute($issue);
 
@@ -222,7 +230,7 @@ public function addComment(
     int $issue
 ): JsonResponse {
 
-    $issue = Issue::findOrFail($issue);
+    $issue = Issue::where('community_id', $communityId)->findOrFail($issue);
 
     $comment = $this->commentService->store(
         $issue,
