@@ -195,11 +195,13 @@ public function addUpdate(
 {
     $issue = Issue::where('community_id', $communityId)->findOrFail($issue);
 
+  
     $logs = $issue
-        ->statusLogs()
-        ->with('changer')
-        ->latest()
-        ->get();
+    ->statusLogs()
+    ->with('changer')
+    ->orderByDesc('created_at')
+    ->orderByDesc('id')
+    ->get();
 
     // Serialize via the dedicated resource (safe "changer" subset) while keeping
     // the endpoint's flat-array contract. Returning the raw collection would
