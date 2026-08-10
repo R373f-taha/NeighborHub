@@ -9,11 +9,11 @@ use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Http\Request;
 use Modules\Community\app\Models\Community;
 use Modules\Community\app\Models\Resident;
-use Modules\Poll\App\Enums\PollStatus;
+use Modules\Poll\app\Enums\PollStatus;
 use Modules\Poll\app\Http\Requests\StorePollRequest;
 use Modules\Poll\app\Models\Poll;
 use Modules\Poll\app\Services\V1\PollService;
-use Modules\Poll\App\Transformers\PollResource;
+use Modules\Poll\app\Transformers\PollResource;
 
 class PollController extends Controller
 {

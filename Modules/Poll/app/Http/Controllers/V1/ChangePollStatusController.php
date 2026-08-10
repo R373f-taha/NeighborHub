@@ -1,21 +1,21 @@
 <?php
 
-namespace Modules\Poll\App\Http\Controllers\V1;
+namespace Modules\Poll\app\Http\Controllers\V1;
 
-use Modules\Poll\App\Services\V1\ChangePollStatusService;
+use Modules\Poll\app\Services\V1\ChangePollStatusService;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Http\Request;
 use Modules\Community\app\Models\Community;
 use Modules\Community\app\Models\Resident;
-use Modules\Poll\App\Enums\PollStatus;
+use Modules\Poll\app\Enums\PollStatus;
 use Modules\Poll\app\Http\Requests\StorePollRequest;
 use Modules\Poll\app\Models\Poll;
 use Modules\Poll\app\Services\V1\PollService;
-use Modules\Poll\App\Transformers\PollResource;
-use Modules\Poll\App\Transformers\PollResultResource;
-use Modules\Poll\Http\Requests\VotePollRequest;
+use Modules\Poll\app\Transformers\PollResource;
+use Modules\Poll\app\Transformers\PollResultResource;
+use Modules\Poll\app\Http\Requests\VotePollRequest;
 class ChangePollStatusController{
   public function __construct(
         private ChangePollStatusService $changePollStatusService

@@ -45,6 +45,14 @@
             "Modules\\ServiceListing\\Database\\Seeders\\": "Modules/ServiceListing/database/seeders/",
             "Modules\\Messaging\\Database\\Factories\\": "Modules/Messaging/database/factories/",
             "Modules\\Messaging\\Database\\Seeders\\": "Modules/Messaging/database/seeders/",
+            "Modules\\Poll\\Database\\Factories\\": "Modules/Poll/database/factories/",
+            "Modules\\Poll\\Database\\Seeders\\": "Modules/Poll/database/seeders/",
+            "Modules\\Issue\\Database\\Factories\\": "Modules/Issue/database/factories/",
+            "Modules\\Issue\\Database\\Seeders\\": "Modules/Issue/database/seeders/",
+            "Modules\\Media\\Database\\Factories\\": "Modules/Media/database/factories/",
+            "Modules\\Media\\Database\\Seeders\\": "Modules/Media/database/seeders/",
+            "Modules\\Notification\\Database\\Factories\\": "Modules/Notification/database/factories/",
+            "Modules\\Notification\\Database\\Seeders\\": "Modules/Notification/database/seeders/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
         }

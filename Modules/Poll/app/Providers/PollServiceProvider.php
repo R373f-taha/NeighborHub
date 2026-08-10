@@ -8,7 +8,7 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Modules\Auth\app\Models\User;
-use Modules\Poll\App\Console\CloseExpiredPolls;
+use Modules\Poll\app\Console\CloseExpiredPolls;
 use Modules\Poll\app\Console\SendPollReminders;
 use Modules\Poll\app\Events\PollCreated;
 use Modules\Poll\app\Events\PollClosed;
@@ -25,8 +25,8 @@ class PollServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $this->loadMigrationsFrom(module_path($this->moduleName, 'Database/Migrations'));
-        $this->loadRoutesFrom(module_path($this->moduleName, 'Routes/api.php'));
+        $this->loadMigrationsFrom(module_path($this->moduleName, 'database/migrations'));
+        $this->loadRoutesFrom(module_path($this->moduleName, 'routes/api.php'));
 
         //  Register Events & Listeners
         Event::listen(

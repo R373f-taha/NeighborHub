@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Modules\Auth\app\Models\User;
 use Modules\Community\app\Models\Community;
-use Modules\Poll\App\Enums\PollStatus;
+use Modules\Poll\app\Enums\PollStatus;
 use Modules\Poll\app\Events\PollClosed;
 use Modules\Poll\Database\Factories\PollFactory;
 

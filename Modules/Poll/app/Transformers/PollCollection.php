@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Poll\Transformers;
+namespace Modules\Poll\app\Transformers;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Poll\App\Console;
+namespace Modules\Poll\app\Console;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;

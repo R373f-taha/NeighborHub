@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Modules\Poll\App\Transformers;
+namespace Modules\Poll\app\Transformers;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-use Modules\Poll\App\Enums\PollStatus;
+use Modules\Poll\app\Enums\PollStatus;
 use UnitEnum;
 
 class PollResource extends JsonResource
