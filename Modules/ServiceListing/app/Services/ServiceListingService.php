@@ -19,8 +19,8 @@ class ServiceListingService
     /**
      * Default and maximum page sizes, consistent with existing project APIs.
      */
-    public const int DEFAULT_PER_PAGE = 15;
-    public const int MAX_PER_PAGE = 100;
+    public const DEFAULT_PER_PAGE = 15;
+    public const MAX_PER_PAGE = 100;
 
     /**
      * OWNER status transition matrix (including idempotent self-targets).
@@ -29,7 +29,7 @@ class ServiceListingService
      * closed is permitted as an authorized idempotent no-op (the owner may
      * maintain a state it legitimately reached).
      */
-    private const array OWNER_TRANSITIONS = [
+    private const OWNER_TRANSITIONS = [
         'active' => ['reserved', 'closed', 'active'],
         'reserved' => ['active', 'closed', 'reserved'],
         'closed' => ['closed'],
@@ -42,7 +42,7 @@ class ServiceListingService
      * listing, and maintain an already-closed listing idempotently, but may
      * never reserve, reactivate, or maintain an active/reserved state.
      */
-    private const array MODERATOR_TRANSITIONS = [
+    private const MODERATOR_TRANSITIONS = [
         'active' => ['closed'],
         'reserved' => ['closed'],
         'closed' => ['closed'],

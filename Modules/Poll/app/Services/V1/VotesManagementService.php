@@ -8,13 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Modules\Poll\app\Models\Poll;
 use Modules\Poll\app\Models\PollOption;
 use Modules\Poll\app\Models\PollVote;
-use Modules\Poll\app\Enums\PollStatus;
-use Modules\Poll\app\Events\PollClosed;
-
-use Modules\Community\app\Models\Community;
 use Modules\Community\app\Models\Resident;
-use Modules\Auth\app\Models\User;
-use Modules\Poll\app\Events\PollCreated;
 use Modules\Poll\app\Traits\CacheableTrait;
 
 
@@ -98,7 +92,7 @@ use CacheableTrait;
                 'data' => $pollVote,
             ];
 
-        } catch (\Exception $e) {var_dump($e);
+        } catch (\Exception $e) {
             Log::error('Vote failed', [
                 'poll_id' => $poll->id,
                 'voter_id' => $voter->id,
@@ -120,7 +114,7 @@ use CacheableTrait;
 
         $cacheKey = $this->cacheKey('results', $poll->id);
 
-        return Cache::rememberForever($cacheKey, function () use($poll){
+        return $this->rememberForever($cacheKey, function () use($poll){
 
             $totalVotes = PollVote::where('poll_id', $poll->id)->count();
             $options = PollOption::where('poll_id', $poll->id)

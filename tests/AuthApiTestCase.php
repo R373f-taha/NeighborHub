@@ -53,9 +53,12 @@ abstract class AuthApiTestCase extends TestCase
 
         // Never persist Authentication security events to disk during tests.
         // Logging-specific tests override this with an in-memory capture.
-        $securityLogger = Log::channel('security')->getLogger();
-        if ($securityLogger instanceof Logger) {
-            $securityLogger->setHandlers([new NullHandler()]);
+        $securityLogger = Log::channel('security');
+        if (method_exists($securityLogger, 'getLogger')) {
+            $underlyingLogger = $securityLogger->getLogger();
+            if ($underlyingLogger instanceof Logger) {
+                $underlyingLogger->setHandlers([new NullHandler()]);
+            }
         }
 
         DB::table('personal_access_tokens')->delete();

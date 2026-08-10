@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Middleware\RequestLoggerMiddleware;
+use App\Http\Middleware\Security\CorsMiddleware;
+use App\Http\Middleware\Security\RequestValidatorMiddleware;
+use App\Http\Middleware\Security\HeadersMiddleware;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -17,6 +21,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'managerOrSuperAdmin' => ManagerOrSuperAdminMiddleware::class,
               'residentOfCommunity' => ResidentOfCommunityMiddleware::class,
         ]);
+        $middleware->append(RequestLoggerMiddleware::class);
+    $middleware->append(RequestValidatorMiddleware::class);
+    $middleware->append(HeadersMiddleware::class);
+    $middleware->append(CorsMiddleware::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

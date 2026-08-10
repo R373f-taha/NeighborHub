@@ -16,7 +16,7 @@ use Modules\Messaging\app\Models\Message;
 
 class MessageService
 {
-    private const string CONVERSATION_UNAVAILABLE = 'The conversation cannot currently accept messages.';
+    private const CONVERSATION_UNAVAILABLE = 'The conversation cannot currently accept messages.';
 
     /**
      * Send a Message into an accessible, active Conversation.

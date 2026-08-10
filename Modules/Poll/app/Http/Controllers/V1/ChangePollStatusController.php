@@ -30,7 +30,7 @@ class ChangePollStatusController{
         $community = Community::findOrFail($communityId);
 
         if ($poll->community_id !== $community->id) {
-            abort(404);
+     return response()->json(['message'=>'This poll doesn`t follow to this community'],404);;
         }
 
       //  $this->authorize('activate', $poll);
