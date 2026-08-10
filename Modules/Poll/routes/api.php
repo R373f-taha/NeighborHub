@@ -3,9 +3,9 @@
 declare(strict_types=1);
 
 use Illuminate\Support\Facades\Route;
-use Modules\Poll\App\Http\Controllers\V1\ChangePollStatusController;
+use Modules\Poll\app\Http\Controllers\V1\ChangePollStatusController;
 use Modules\Poll\app\Http\Controllers\V1\PollController;
-use Modules\Poll\App\Http\Controllers\V1\VotesManagementController;
+use Modules\Poll\app\Http\Controllers\V1\VotesManagementController;
 
 Route::prefix('api/v1')->group(function () {
 

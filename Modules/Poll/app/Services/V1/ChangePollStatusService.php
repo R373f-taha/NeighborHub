@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Poll\App\Services\V1;
+namespace Modules\Poll\app\Services\V1;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Poll\app\Models\Poll;

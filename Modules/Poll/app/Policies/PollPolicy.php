@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Modules\Poll\app\Policies;
 
 use Modules\Auth\app\Models\User;
-use Modules\Poll\App\Enums\PollStatus;
+use Modules\Poll\app\Enums\PollStatus;
 use Modules\Poll\app\Models\Poll;
 
 class PollPolicy

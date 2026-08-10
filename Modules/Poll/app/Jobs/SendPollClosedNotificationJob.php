@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Log;
 use Modules\Notification\app\Models\Notification;
 use Modules\Poll\app\Models\Poll;
 use Modules\Community\app\Models\Resident;
-use Modules\Poll\App\Services\V1\VotesManagementService;
+use Modules\Poll\app\Services\V1\VotesManagementService;
 
 class SendPollClosedNotificationJob implements ShouldQueue
 {

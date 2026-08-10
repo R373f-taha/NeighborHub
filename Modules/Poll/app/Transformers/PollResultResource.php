@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Poll\App\Transformers;
+namespace Modules\Poll\app\Transformers;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;

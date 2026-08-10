@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Poll\App\Enums;
+namespace Modules\Poll\app\Enums;
 
 enum PollStatus: string
 {

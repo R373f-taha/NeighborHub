@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Modules\Poll\App\Http\Controllers\V1;
+namespace Modules\Poll\app\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\JsonResponse;
@@ -11,7 +11,7 @@ use Modules\Community\app\Models\Resident;
 use Modules\Poll\app\Enums\PollStatus;
 use Modules\Poll\app\Http\Requests\VotePollRequest;
 use Modules\Poll\app\Models\Poll;
-use Modules\Poll\App\Services\V1\VotesManagementService;
+use Modules\Poll\app\Services\V1\VotesManagementService;
 
 class VotesManagementController extends Controller
 {

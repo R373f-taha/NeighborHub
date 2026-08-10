@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Poll\App\Services\V1;
+namespace Modules\Poll\app\Services\V1;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
