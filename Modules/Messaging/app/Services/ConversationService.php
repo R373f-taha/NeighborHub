@@ -15,8 +15,8 @@ use Modules\Messaging\app\Models\Message;
 
 class ConversationService
 {
-    public const int DEFAULT_PER_PAGE = 15;
-    public const int MAX_PER_PAGE = 100;
+    public const DEFAULT_PER_PAGE = 15;
+    public const MAX_PER_PAGE = 100;
 
     public function __construct(private ConversationAccessService $access) {}
 

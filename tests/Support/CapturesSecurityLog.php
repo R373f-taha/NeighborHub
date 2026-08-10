@@ -21,10 +21,13 @@ trait CapturesSecurityLog
     {
         $this->securityLogHandler = new TestHandler();
 
-        $logger = Log::channel('security')->getLogger();
+        $logger = Log::channel('security');
 
-        if ($logger instanceof Logger) {
-            $logger->setHandlers([$this->securityLogHandler]);
+        if (method_exists($logger, 'getLogger')) {
+            $underlyingLogger = $logger->getLogger();
+            if ($underlyingLogger instanceof Logger) {
+                $underlyingLogger->setHandlers([$this->securityLogHandler]);
+            }
         }
     }
 

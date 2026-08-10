@@ -15,6 +15,7 @@
         "laravel/tinker": "^2.10.1",
         "nwidart/laravel-modules": "*",
         "predis/predis": "*",
+        "simplesoftwareio/simple-qrcode": "^4.2",
         "spatie/laravel-activitylog": "^4.12",
         "spatie/laravel-medialibrary": "^11.23",
         "spatie/laravel-permission": "^6.25"
