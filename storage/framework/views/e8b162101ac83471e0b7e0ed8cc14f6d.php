@@ -233,4 +233,4 @@
 </div>
 </body>
 </html>
-<?php /**PATH C:\Users\areft\OneDrive\Desktop\Focal X\NeighborHub\vendor\laravel\telescope\src/../resources/views/layout.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\Users\DELL\Desktop\NeighborHub2\NeighborHub\vendor\laravel\telescope\src/../resources/views/layout.blade.php ENDPATH**/ ?>

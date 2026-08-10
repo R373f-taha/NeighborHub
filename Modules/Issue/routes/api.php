@@ -10,26 +10,28 @@ Route::middleware('auth:sanctum')
     ->prefix('v1')
     ->group(function () {
 
-
-        Route::get('issue-categories',
+        Route::get(
+            'issue-categories',
             [IssueCategoryController::class, 'index']
         )->middleware('can:view_issues');
-
-
 
 
         Route::prefix('communities/{communityId}/issues')
             ->group(function () {
 
-                Route::get('/',[IssueController::class, 'index']
+                Route::get(
+                    '/',
+                    [IssueController::class, 'index']
                 )->middleware('can:view_issues');
 
 
                 // Resident must belong to this community
-                Route::post('/',[IssueController::class, 'store']
+                Route::post(
+                    '/',
+                    [IssueController::class, 'store']
                 )->middleware([
                     'resident',
-                    'residentOfCommunity',
+                    'resident.of.community',
                     'can:create_issue',
                 ]);
 
@@ -46,34 +48,37 @@ Route::middleware('auth:sanctum')
                     '/{issue}',
                     [IssueController::class, 'update']
                 )->middleware([
-                    'managerOrSuperAdmin',
+                    'manager.or.super.admin',
                     'can:update_issue',
                 ]);
 
 
+                // Assign Issue
                 Route::patch(
                     '/{issue}/assign',
                     [IssueController::class, 'assign']
                 )->whereNumber('issue')->middleware([
-                     'managerOrSuperAdmin',
-                     'can:assign_issue',
-                 ]);
+                    'manager.or.super.admin',
+                    'can:assign_issue',
+                ]);
 
 
+                // Update Issue Status
                 Route::patch(
                     '/{issue}/status',
                     [IssueController::class, 'updateStatus']
                 )->middleware([
-                    'managerSuperAdminOrProvider',
+                    'manager.or.superadmin.or.Provider',
                     'can:update_issue_status',
                 ]);
 
 
+                // Add Issue Update
                 Route::post(
                     '/{issue}/updates',
                     [IssueController::class, 'addUpdate']
                 )->middleware([
-                    'managerSuperAdminOrProvider',
+                    'manager.or.superadmin.or.Provider',
                     'can:add_issue_update',
                 ]);
 
@@ -85,15 +90,17 @@ Route::middleware('auth:sanctum')
                 )->middleware('can:view_issues');
 
 
+                // Delete Issue
                 Route::delete(
                     '/{issue}',
                     [IssueController::class, 'destroy']
                 )->middleware([
-                    'managerOrSuperAdmin',
+                    'manager.or.super.admin',
                     'can:delete_issue',
                 ]);
 
 
+                // Add Comment
                 Route::post(
                     '/{issue}/comments',
                     [IssueController::class, 'addComment']

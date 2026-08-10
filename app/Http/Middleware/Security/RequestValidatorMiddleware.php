@@ -166,29 +166,57 @@ class RequestValidatorMiddleware
      * - Memory exhaustion attacks
      * - Disk space exhaustion
      */
+
+
     private function isPayloadValid(Request $request): bool
-    {
-        // Skip GET requests (no payload)
-        if ($request->method() === 'GET' || $request->method() === 'HEAD') {
-            return true;
-        }
-
-        $maxSize = env('MAX_PAYLOAD_SIZE', 10 * 1024 * 1024); // 10MB default
-        $contentLength = $request->getContentLength();
-
-        // Check Content-Length header
-        if ($contentLength && $contentLength > $maxSize) {
-            return false;
-        }
-
-        // Check actual content size (more reliable)
-        $content = $request->getContent();
-        if (strlen($content) > $maxSize) {
-            return false;
-        }
-
+{
+    // Skip GET requests (no payload)
+    if ($request->method() === 'GET' || $request->method() === 'HEAD') {
         return true;
     }
+
+    $maxSize = env('MAX_PAYLOAD_SIZE', 10 * 1024 * 1024); // 10MB default
+
+    // Get Content-Length from HTTP header
+    $contentLength = $request->header('Content-Length');
+
+    // Check Content-Length header
+    if ($contentLength !== null && (int) $contentLength > $maxSize) {
+        return false;
+    }
+
+    // Check actual content size
+    $content = $request->getContent();
+
+    if (strlen($content) > $maxSize) {
+        return false;
+    }
+
+    return true;
+}
+    // private function isPayloadValid(Request $request): bool
+    // {
+    //     // Skip GET requests (no payload)
+    //     if ($request->method() === 'GET' || $request->method() === 'HEAD') {
+    //         return true;
+    //     }
+
+    //     $maxSize = env('MAX_PAYLOAD_SIZE', 10 * 1024 * 1024); // 10MB default
+    //     $contentLength = $request->getContentLength();
+
+    //     // Check Content-Length header
+    //     if ($contentLength && $contentLength > $maxSize) {
+    //         return false;
+    //     }
+
+    //     // Check actual content size (more reliable)
+    //     $content = $request->getContent();
+    //     if (strlen($content) > $maxSize) {
+    //         return false;
+    //     }
+
+    //     return true;
+    // }
 
     /**
      * Validate HTTP method
