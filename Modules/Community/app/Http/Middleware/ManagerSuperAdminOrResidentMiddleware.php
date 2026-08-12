@@ -10,7 +10,7 @@ use Modules\Community\app\Models\Community;
 use Modules\Issue\app\Models\Issue;
 use Symfony\Component\HttpFoundation\Response;
 
-class ManagerSuperAdminOrProviderMiddleware
+class ManagerSuperAdminOrResidentMiddleware
 {
     public function handle(
         Request $request,
@@ -18,20 +18,16 @@ class ManagerSuperAdminOrProviderMiddleware
     ): Response {
         $user = $request->user();
 
+        /*
+        |--------------------------------------------------------------------------
+        | Authentication
+        |--------------------------------------------------------------------------
+        */
+
         if (! $user) {
             return response()->json([
                 'message' => 'Unauthenticated. Please provide a valid token.',
             ], 401);
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Super Admin
-        |--------------------------------------------------------------------------
-        */
-
-        if ($user->isSuperAdmin()) {
-            return $next($request);
         }
 
         /*
@@ -55,51 +51,93 @@ class ManagerSuperAdminOrProviderMiddleware
 
         /*
         |--------------------------------------------------------------------------
-        | Manager
+        | Find Community
         |--------------------------------------------------------------------------
         */
 
-        if ($user->isManager()) {
+        $community = Community::find($communityId);
 
-            $community = Community::find($communityId);
+        if (! $community) {
+            return response()->json([
+                'message' => 'Community not found.',
+            ], 404);
+        }
 
-            if (! $community) {
-                return response()->json([
-                    'message' => 'Community not found.',
-                ], 404);
-            }
+        /*
+        |--------------------------------------------------------------------------
+        | Super Admin
+        |--------------------------------------------------------------------------
+        */
 
-            $isManagerOfCommunity = $community
-                ->managers()
-                ->where('manager_id', $user->id)
-                ->exists();
-
-            if (! $isManagerOfCommunity) {
-                return response()->json([
-                    'message' => 'Unauthorized. You are not a manager of this community.',
-                ], 403);
-            }
-
+        if ($user->isSuperAdmin()) {
             return $next($request);
         }
 
         /*
         |--------------------------------------------------------------------------
-        | Provider
+        | Manager
         |--------------------------------------------------------------------------
         */
 
-        if ($user->isProvider()) {
+        if ($user->isManager()) {
+            $hasAccess = $community
+                ->managers()
+                ->where('manager_id', $user->id)
+                ->exists();
 
+            if ($hasAccess) {
+                return $next($request);
+            }
+
+            return response()->json([
+                'message' => 'Unauthorized. You are not a manager of this community.',
+            ], 403);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Resident
+        |--------------------------------------------------------------------------
+        */
+
+        if ($user->isResident()) {
+            $hasAccess = $user
+                ->resident()
+                ->where('community_id', $community->id)
+                ->where('status', 'active')
+                ->where('current_marker', true)
+                ->exists();
+
+            if ($hasAccess) {
+                return $next($request);
+            }
+
+            return response()->json([
+                'message' => 'Unauthorized. You do not belong to this community.',
+            ], 403);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Assigned Provider
+        |--------------------------------------------------------------------------
+        |
+        | Provider can view ONLY an issue assigned to them.
+        |
+        |
+        */
+
+        if ($user->isProvider()) {
             $issueId = $request->route('issue');
 
             if (! $issueId) {
                 return response()->json([
-                    'message' => 'Issue ID is required.',
-                ], 400);
+                    'message' => 'Providers can only access issues assigned to them.',
+                ], 403);
             }
 
-            $issue = Issue::where('community_id', $communityId)
+            $issue = Issue::query()
+                ->where('community_id', $community->id)
                 ->whereKey($issueId)
                 ->first();
 
@@ -108,7 +146,6 @@ class ManagerSuperAdminOrProviderMiddleware
                     'message' => 'Issue not found.',
                 ], 404);
             }
-
 
             if ((int) $issue->assigned_to !== (int) $user->id) {
                 return response()->json([
@@ -120,8 +157,9 @@ class ManagerSuperAdminOrProviderMiddleware
         }
 
 
+
         return response()->json([
-            'message' => 'Unauthorized. This action requires Manager, Provider, or Super Admin role.',
+            'message' => 'Unauthorized. You do not have access to this community.',
         ], 403);
     }
 }

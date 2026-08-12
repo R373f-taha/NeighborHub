@@ -76,8 +76,6 @@ public function show(
     return new AnnouncementResource($announcement);
 }
 
-
-
 public function update(
     int $communityId,
     int $announcement,
@@ -87,18 +85,18 @@ public function update(
 
     $announcement = Announcement::findOrFail($announcement);
 
+    abort_if((int) $announcement->community_id !== (int) $communityId,404);
+
     $this->authorize('update', $announcement);
 
     $action->execute(
         $announcement,
-        $request->validated()
-    );
+        $request->validated());
 
     return response()->json([
         'message' => 'Announcement updated successfully'
     ]);
 }
-
 public function destroy(
     int $communityId,
     int $announcement,
@@ -106,14 +104,10 @@ public function destroy(
 ): JsonResponse {
 
     $announcement = Announcement::findOrFail($announcement);
+    abort_if((int) $announcement->community_id !== (int) $communityId,404);
 
-    $this->authorize(
-        'delete',
-        $announcement
-    );
-
+    $this->authorize('delete',$announcement);
     $action->execute($announcement);
-
     return response()->json([
         'message' => 'Announcement deleted successfully'
     ]);

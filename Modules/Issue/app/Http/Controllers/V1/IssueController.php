@@ -129,14 +129,35 @@ public function update(
     int $issue
 ): IssueResource {
 
-    $issue = Issue::where('community_id', $communityId)->findOrFail($issue);
+    $user = $request->user();
+
+    $issue = Issue::where('community_id', $communityId)
+        ->findOrFail($issue);
+
+
+    if ($user->isResident()) {
+
+        if ((int) $issue->reported_by !== (int) $user->id) {
+            abort(403, 'You can only update your own issue.');
+        }
+
+        if ($issue->assigned_to !== null) {
+            abort(403, 'You cannot update an issue after it has been assigned.');
+        }
+    }
+
+
 
     $issue = $this->updateAction->execute(
         $issue,
         IssueData::fromUpdateRequest($request)
     );
 
-    return new IssueResource($issue);
+    return new IssueResource($issue->load([
+        'category',
+        'reporter',
+        'assignee',
+    ]));
 }
 
   public function assign(
@@ -195,7 +216,7 @@ public function addUpdate(
 {
     $issue = Issue::where('community_id', $communityId)->findOrFail($issue);
 
-  
+
     $logs = $issue
     ->statusLogs()
     ->with('changer')
@@ -232,11 +253,44 @@ public function addComment(
     int $issue
 ): JsonResponse {
 
-    $issue = Issue::where('community_id', $communityId)->findOrFail($issue);
+    $user = $request->user();
+
+    // Super Admin can comment in any community
+    if (!$user->isSuperAdmin()) {
+
+        $community = Community::findOrFail($communityId);
+
+        $isAllowed = false;
+
+        // Manager of this community
+        if ($user->isManager()) {
+            $isAllowed = $community->managers()
+                ->where('manager_id', $user->id)
+                ->exists();
+        }
+
+        // Resident of this community
+        if ($user->isResident()) {
+            $isAllowed = $community->residents()
+                ->where('user_id', $user->id)
+                ->exists();
+        }
+
+        if (!$isAllowed) {
+            abort(
+                403,
+                'Unauthorized. You are not a member or manager of this community.'
+            );
+        }
+    }
+
+    // Issue must belong to the requested community
+    $issue = Issue::where('community_id', $communityId)
+        ->findOrFail($issue);
 
     $comment = $this->commentService->store(
         $issue,
-        $request->user(),
+        $user,
         $request->validated()
     );
 

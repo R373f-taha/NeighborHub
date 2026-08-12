@@ -25,169 +25,150 @@ use Modules\Issue\app\Repositories\Contracts\IssueRepositoryInterface;
 
 use Modules\Issue\app\Rules\IssueStatusTransitionRule;
 
+use Modules\Issue\app\Traits\CacheableIssueTrait;
 
 class IssueService
 {
+    use CacheableIssueTrait;
 
     public function __construct(
         private readonly IssueRepositoryInterface $repository
     ) {}
 
-
-
     public function paginateByCommunity(
         int $communityId,
         int $perPage = 15
     ): LengthAwarePaginator {
-
         return $this->repository
             ->paginateByCommunity(
                 $communityId,
                 $perPage
             );
     }
+
     public function findOrFail(
         int $issueId
     ): Issue {
-
-        return $this->repository
-            ->findOrFail($issueId);
+        return $this->getCachedIssue($issueId);
     }
+
     public function create(
         IssueData $data
     ): Issue {
-
         return DB::transaction(function () use ($data) {
 
             $issue = $this->repository->create(
                 $data->toArray()
             );
 
+            $this->clearCommunityIssuesCache(
+                $issue->community_id
+            );
 
             IssueCreated::dispatch(
                 $issue
             );
 
-
             return $issue;
-
         });
-
     }
 
     public function update(
         Issue $issue,
         IssueData $data
     ): Issue {
-
         return DB::transaction(function () use (
             $issue,
             $data
         ) {
-
-
             if ($issue->assigned_to !== null) {
-
                 abort(
                     422,
                     'Issue cannot be updated after assignment.'
                 );
-
             }
 
-
-            return $this->repository->update(
+            $updatedIssue = $this->repository->update(
                 $issue,
                 $data->toArray()
             );
 
+            $this->clearIssueCache($updatedIssue);
 
+            return $updatedIssue;
         });
-
     }
 
-  public function assign(
-    Issue $issue,
-    AssignIssueData $data
-): Issue {
-
-    return DB::transaction(function () use (
-        $issue,
-        $data
-    ) {
-
-        $issue = Issue::query()
-            ->lockForUpdate()
-            ->findOrFail($issue->id);
-
-
-        if ($issue->assigned_to !== null) {
-
-            abort(
-                422,
-                'Issue is already assigned.'
-            );
-
-        }
-
-
-        $issue->update([
-
-            'assigned_to' => $data->providerId,
-
-            'status' => IssueStatus::ASSIGNED,
-
-        ]);
-
-        $issue->refresh();
-        IssueAssigned::dispatch(
-            $issue
-        );
-        return $issue;
-
-    });
-
-}
-    public function updateStatus(
+    public function assign(
         Issue $issue,
-        IssueStatusData $data
+        AssignIssueData $data
     ): Issue {
-
-
         return DB::transaction(function () use (
             $issue,
             $data
         ) {
-
-
             $issue = Issue::query()
                 ->lockForUpdate()
                 ->findOrFail($issue->id);
+
+            if ($issue->assigned_to !== null) {
+                abort(
+                    422,
+                    'Issue is already assigned.'
+                );
+            }
+
+            $issue->update([
+                'assigned_to' => $data->providerId,
+                'status' => IssueStatus::ASSIGNED,
+            ]);
+
+            $issue->refresh();
+
+            $this->clearIssueCache($issue);
+
+            IssueAssigned::dispatch(
+                $issue
+            );
+
+            return $issue;
+        });
+    }
+
+    public function updateStatus(
+        Issue $issue,
+        IssueStatusData $data
+    ): Issue {
+        return DB::transaction(function () use (
+            $issue,
+            $data
+        ) {
+            $issue = Issue::query()
+                ->lockForUpdate()
+                ->findOrFail($issue->id);
+
             IssueStatusTransitionRule::validate(
-
                 $issue->status,
-
                 $data->status
-
             );
 
             $oldStatus = $issue->status;
-            $issue->update(['status' => $data->status,]);
 
-
+            $issue->update([
+                'status' => $data->status,
+            ]);
 
             $log = $issue->statusLogs()->create([
-
                 'old_status' => $oldStatus->value,
-
                 'new_status' => $data->status->value,
-
                 'changed_by' => $data->changedBy,
-
                 'note' => $data->note,
-
             ]);
+
             $issue->refresh();
+
+            $this->clearIssueCache($issue);
+
             IssueStatusUpdated::dispatch(
                 $issue,
                 $oldStatus->value
@@ -196,45 +177,51 @@ class IssueService
             IssueLogAdded::dispatch(
                 $log
             );
+
             return $issue;
-
         });
-
     }
 
-public function addLog(Issue $issue, IssueLogData $data): void
-{
-    $status = $issue->getRawOriginal('status');
+    public function addLog(
+        Issue $issue,
+        IssueLogData $data
+    ): void {
+        $status = $issue->getRawOriginal('status');
 
-    $issue->statusLogs()->create([
-        'old_status' => $status,
-        'new_status' => $status,
-        'changed_by' => $data->changedBy,
-        'note' => $data->note,
-    ]);
-}
-   public function delete(
-    Issue $issue
-): bool {
+        $issue->statusLogs()->create([
+            'old_status' => $status,
+            'new_status' => $status,
+            'changed_by' => $data->changedBy,
+            'note' => $data->note,
+        ]);
 
-    return DB::transaction(function () use ($issue) {
+        $this->clearIssueCache($issue);
+    }
 
+    public function delete(
+        Issue $issue
+    ): bool {
+        return DB::transaction(function () use ($issue) {
 
-        if ($issue->assigned_to !== null) {
+            if ($issue->assigned_to !== null) {
+                abort(
+                    422,
+                    'Assigned issue cannot be deleted.'
+                );
+            }
 
-            abort(
-                422,
-                'Assigned issue cannot be deleted.'
-            );
+            $deleted = $this->repository
+                ->delete($issue);
 
-        }
+            if ($deleted) {
+                $this->clearIssueCache($issue);
 
+                IssueDeleted::dispatch(
+                    $issue
+                );
+            }
 
-        return $this->repository
-            ->delete($issue);
-
-    });
-
-}
-
+            return $deleted;
+        });
+    }
 }

@@ -10,101 +10,115 @@ Route::middleware('auth:sanctum')
     ->prefix('v1')
     ->group(function () {
 
+        /*
+        |--------------------------------------------------------------------------
+        | Issue Categories
+        |--------------------------------------------------------------------------
+        */
+
         Route::get(
             'issue-categories',
             [IssueCategoryController::class, 'index']
-        )->middleware('can:view_issues');
+        )->middleware([
+            'can:view_issues',
+        ]);
+
 
 
         Route::prefix('communities/{communityId}/issues')
             ->group(function () {
 
-                Route::get(
-                    '/',
-                    [IssueController::class, 'index']
-                )->middleware('can:view_issues');
 
 
-                // Resident must belong to this community
-                Route::post(
-                    '/',
-                    [IssueController::class, 'store']
+                Route::get('/',[IssueController::class, 'index']
                 )->middleware([
-                    'resident',
+                    'manager.superadmin.resident',
+                    'can:view_issues',
+                ]);
+
+
+
+
+                Route::post('/', [IssueController::class, 'store']
+                )->middleware([
                     'resident.of.community',
                     'can:create_issue',
                 ]);
 
 
-                // Show Issue
-                Route::get(
-                    '/{issue}',
-                    [IssueController::class, 'show']
-                )->middleware('can:view_issues');
 
 
-                // Update Issue
-                Route::put(
-                    '/{issue}',
-                    [IssueController::class, 'update']
-                )->middleware([
-                    'manager.or.super.admin',
-                    'can:update_issue',
-                ]);
+              Route::get('/{issue}', [IssueController::class, 'show'])
+           ->whereNumber('issue')->middleware([
+        'manager.superadmin.resident',
+        'can:view_issues',
+                      ]);
 
 
-                // Assign Issue
-                Route::patch(
-                    '/{issue}/assign',
-                    [IssueController::class, 'assign']
-                )->whereNumber('issue')->middleware([
-                    'manager.or.super.admin',
-                    'can:assign_issue',
-                ]);
 
 
-                // Update Issue Status
-                Route::patch(
-                    '/{issue}/status',
-                    [IssueController::class, 'updateStatus']
-                )->middleware([
-                    'manager.or.superadmin.or.Provider',
-                    'can:update_issue_status',
-                ]);
+                Route::put('/{issue}',[IssueController::class, 'update']
+                )->whereNumber('issue')
+                 ->middleware([
+                     'manager.superadmin.resident',
+                     'can:update_issue',
+                 ]);
 
 
-                // Add Issue Update
-                Route::post(
-                    '/{issue}/updates',
-                    [IssueController::class, 'addUpdate']
-                )->middleware([
-                    'manager.or.superadmin.or.Provider',
-                    'can:add_issue_update',
-                ]);
 
 
-                // Get Updates History
-                Route::get(
-                    '/{issue}/updates',
-                    [IssueController::class, 'updates']
-                )->middleware('can:view_issues');
+                Route::patch('/{issue}/assign',[IssueController::class, 'assign']
+                )->whereNumber('issue')
+                 ->middleware([
+                     'manager.or.super.admin',
+                     'can:assign_issue',
+                 ]);
 
 
-                // Delete Issue
-                Route::delete(
-                    '/{issue}',
-                    [IssueController::class, 'destroy']
-                )->middleware([
-                    'manager.or.super.admin',
-                    'can:delete_issue',
-                ]);
+
+                Route::patch('/{issue}/status',[IssueController::class, 'updateStatus']
+                )->whereNumber('issue')
+                 ->middleware([
+                     'manager.superadmin.or.assigned.provider',
+                     'can:update_issue_status',
+                 ]);
 
 
-                // Add Comment
-                Route::post(
-                    '/{issue}/comments',
-                    [IssueController::class, 'addComment']
-                )->middleware('can:comment_issue');
 
+
+                Route::post('/{issue}/updates', [IssueController::class, 'addUpdate']
+                )->whereNumber('issue')
+                 ->middleware([
+                     'manager.superadmin.or.assigned.provider',
+                     'can:add_issue_update',
+                 ]);
+
+
+                Route::get( '/{issue}/updates',[IssueController::class, 'updates']
+                )->whereNumber('issue')
+                 ->middleware([
+                     'manager.superadmin.resident',
+                     'can:view_issues',
+                 ]);
+
+
+
+
+                Route::delete('/{issue}',[IssueController::class, 'destroy']
+                )->whereNumber('issue')
+                 ->middleware([
+                     'manager.or.super.admin',
+                     'can:delete_issue',
+                 ]);
+
+
+
+
+                Route::post('/{issue}/comments',[IssueController::class, 'addComment']
+                )->whereNumber('issue')
+                 ->middleware([
+                     'resident.of.community',
+                     'can:comment_issue',
+                 ]);
             });
     });

@@ -67,8 +67,8 @@ abstract class IssueTestCase extends TestCase
         $this->category = IssueCategory::create(['name' => 'Plumbing', 'is_active' => true]);
         $this->inactiveCategory = IssueCategory::create(['name' => 'Deprecated', 'is_active' => false]);
 
-        $this->issueA = Issue::create(['community_id' => $this->communityA->id, 'category_id' => $this->category->id, 'title' => 'Leak A', 'description' => 'desc', 'location' => 'loc', 'priority' => 'high', 'status' => 'open', 'reported_by' => $this->residentUserA->id]);
-        $this->issueB = Issue::create(['community_id' => $this->communityB->id, 'category_id' => $this->category->id, 'title' => 'Leak B', 'description' => 'desc', 'location' => 'loc', 'priority' => 'low', 'status' => 'open', 'reported_by' => $this->residentUserB->id]);
+$this->issueA = Issue::create(['community_id' => $this->communityA->id,'category_id' => $this->category->id,'title' => 'Leak A','description' => 'desc','location' => 'loc','priority' => 'high','status' => 'open','reported_by' => $this->residentUserA->id,]);
+  $this->issueB = Issue::create(['community_id' => $this->communityB->id, 'category_id' => $this->category->id, 'title' => 'Leak B', 'description' => 'desc', 'location' => 'loc', 'priority' => 'low', 'status' => 'open', 'reported_by' => $this->residentUserB->id]);
     }
 
     public function call($method, $uri, $parameters = [], $cookies = [], $files = [], $server = [], $content = null)

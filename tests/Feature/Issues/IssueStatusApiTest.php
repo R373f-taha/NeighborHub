@@ -13,18 +13,20 @@ use Modules\Issue\app\Models\IssueStatusLog;
  */
 class IssueStatusApiTest extends IssueTestCase
 {
-    private function issueWithStatus(string $status): Issue
-    {
-        return Issue::create([
-            'community_id' => $this->communityA->id,
-            'category_id' => $this->category->id,
-            'title' => 'Status issue',
-            'description' => 'd', 'location' => 'l',
-            'priority' => 'medium',
-            'status' => $status,
-            'reported_by' => $this->residentUserA->id,
-        ]);
-    }
+ private function issueWithStatus(string $status): Issue
+{
+    return Issue::create([
+        'community_id' => $this->communityA->id,
+        'category_id' => $this->category->id,
+        'title' => 'Status issue',
+        'description' => 'd',
+        'location' => 'l',
+        'priority' => 'medium',
+        'status' => $status,
+        'reported_by' => $this->residentUserA->id,
+        'assigned_to' => $this->provider->id,
+    ]);
+}
 
     // ── Auth ──
 
