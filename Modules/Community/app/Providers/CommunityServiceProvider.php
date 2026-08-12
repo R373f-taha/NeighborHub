@@ -19,6 +19,11 @@ use Modules\Community\app\Http\Middleware\ResidentMiddleware;
 use Modules\Community\app\Http\Middleware\SuperAdminMiddleware;
 use Modules\Community\app\Http\Middleware\ProviderMiddleware;
 use Modules\Community\app\Http\Middleware\ResidentOfCommunityMiddleware;
+use Modules\Community\app\Http\Middleware\ManagerSuperAdminOrResidentMiddleware;
+use Modules\Community\app\Http\Middleware\ManagerSuperAdminOrAssignedProviderMiddleware;
+
+
+
 use Modules\Community\app\Models\Announcement;
 use Modules\Community\app\Policies\AnnouncementPolicy;
 
@@ -61,5 +66,8 @@ class CommunityServiceProvider extends ServiceProvider
         Route::aliasMiddleware('manager.or.super.admin', ManagerOrSuperAdminMiddleware::class);
         Route::aliasMiddleware('manager.or.superadmin.or.Provider',ManagerSuperAdminOrProviderMiddleware::class);
         Route::aliasMiddleware('resident.of.community',ResidentOfCommunityMiddleware::class);
+        Route::aliasMiddleware('manager.superadmin.resident',ManagerSuperAdminOrResidentMiddleware::class);
+Route::aliasMiddleware('manager.superadmin.or.assigned.provider',ManagerSuperAdminOrAssignedProviderMiddleware::class
+);
     }
 }

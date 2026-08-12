@@ -38,11 +38,19 @@ class IssueUpdateApiTest extends IssueTestCase
         $this->assertSame($this->managerA->id, $log->changed_by);
     }
 
-    public function test_provider_can_add_update(): void
-    {
-        $this->postJson($this->updatesUri($this->communityA, $this->issueA), ['note' => 'On site.'], $this->token($this->provider))
-            ->assertStatus(200);
-    }
+   public function test_provider_can_add_update(): void
+{
+    $this->issueA->update([
+        'assigned_to' => $this->provider->id,
+        'status' => 'assigned',
+    ]);
+
+    $this->postJson(
+        $this->updatesUri($this->communityA, $this->issueA),
+        ['note' => 'On site.'],
+        $this->token($this->provider)
+    )->assertStatus(200);
+}
 
     public function test_add_update_validates_note_required(): void
     {

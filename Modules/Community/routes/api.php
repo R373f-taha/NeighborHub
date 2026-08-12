@@ -24,13 +24,12 @@ Route::middleware([
                 */
 
                 // List Announcements
-                Route::get(
-                    'announcements',
-                    [AnnouncementController::class, 'index']
-                )->middleware([
-                    'can:view_announcements',
-                    'throttle:60,60',
-                ]);
+Route::get('announcements',[AnnouncementController::class, 'index']
+       )->middleware([
+    'manager.superadmin.resident',
+    'can:view_announcements',
+    'throttle:60,60',
+]);
 
                 // Create Announcement
                 Route::post(
@@ -47,6 +46,7 @@ Route::middleware([
                     'announcements/{announcement}',
                     [AnnouncementController::class, 'show']
                 )->middleware([
+                        'manager.superadmin.resident',
                     'can:view_announcements',
                     'throttle:60,60',
                 ]);

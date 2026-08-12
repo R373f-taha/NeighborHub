@@ -66,7 +66,7 @@ class AnnouncementReadApiTest extends AnnouncementTestCase
         // receives community A's announcement list (data is scoped to the URL
         // community, but access is not gated to membership).
         $this->getJson($this->indexUri($this->communityA), $this->token($this->residentUserB))
-            ->assertStatus(200);
+            ->assertStatus(403);
     }
 
     // ── Community isolation / IDOR ──

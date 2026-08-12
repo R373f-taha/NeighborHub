@@ -10,7 +10,7 @@ use Modules\Community\app\Models\Community;
 use Modules\Issue\app\Models\Issue;
 use Symfony\Component\HttpFoundation\Response;
 
-class ManagerSuperAdminOrProviderMiddleware
+class ManagerSuperAdminOrAssignedProviderMiddleware
 {
     public function handle(
         Request $request,
@@ -18,6 +18,7 @@ class ManagerSuperAdminOrProviderMiddleware
     ): Response {
         $user = $request->user();
 
+        // Authentication
         if (! $user) {
             return response()->json([
                 'message' => 'Unauthenticated. Please provide a valid token.',
@@ -60,7 +61,6 @@ class ManagerSuperAdminOrProviderMiddleware
         */
 
         if ($user->isManager()) {
-
             $community = Community::find($communityId);
 
             if (! $community) {
@@ -90,7 +90,6 @@ class ManagerSuperAdminOrProviderMiddleware
         */
 
         if ($user->isProvider()) {
-
             $issueId = $request->route('issue');
 
             if (! $issueId) {
@@ -109,7 +108,6 @@ class ManagerSuperAdminOrProviderMiddleware
                 ], 404);
             }
 
-
             if ((int) $issue->assigned_to !== (int) $user->id) {
                 return response()->json([
                     'message' => 'Unauthorized. This issue is not assigned to you.',
@@ -118,6 +116,7 @@ class ManagerSuperAdminOrProviderMiddleware
 
             return $next($request);
         }
+
 
 
         return response()->json([
