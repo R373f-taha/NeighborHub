@@ -16914,6 +16914,644 @@
         }
       ],
       "description": "Team module (Issue). NOTE: all Issue routes currently resolve under /v1/communities/{community}/... (no /api prefix) - see report."
+    },
+    {
+      "name": "Reports",
+      "item": [
+        {
+          "name": "Community Engagement Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{server_url}}/api/communities/{{community_id}}/reports/engagement",
+              "host": [
+                "{{server_url}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{community_id}}",
+                "reports",
+                "engagement"
+              ]
+            },
+            "description": "Requires an authenticated community manager or super admin (managerOrSuperAdmin middleware). Read-only analytics endpoint; no query parameters. NOTE: served under /api/communities/{communityId}/reports (no v1 segment). Returns post, comment, reaction and poll-vote totals plus poll participation (active residents, unique voters, percentage)."
+          },
+          "response": [
+            {
+              "name": "Success - 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{server_url}}/api/communities/{{community_id}}/reports/engagement",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "communities",
+                    "{{community_id}}",
+                    "reports",
+                    "engagement"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "cookie": [],
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, private",
+                  "type": "text"
+                }
+              ],
+              "body": "{\n    \"posts\": 128,\n    \"posts_by_category\": {\n        \"general\": 52,\n        \"event\": 24,\n        \"question\": 18,\n        \"recommendation\": 20,\n        \"lost_and_found\": 14\n    },\n    \"comments\": 340,\n    \"reactions\": 512,\n    \"poll_votes\": 96,\n    \"poll_participation\": {\n        \"active_residents\": 48,\n        \"unique_voters\": 31,\n        \"percentage\": 64.58\n    }\n}"
+            },
+            {
+              "name": "Unauthorized - 401",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{server_url}}/api/communities/{{community_id}}/reports/engagement",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "communities",
+                    "{{community_id}}",
+                    "reports",
+                    "engagement"
+                  ]
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "cookie": [],
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, private",
+                  "type": "text"
+                }
+              ],
+              "body": "{\n    \"message\": \"Unauthenticated.\"\n}"
+            },
+            {
+              "name": "Forbidden - 403",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{server_url}}/api/communities/{{community_id}}/reports/engagement",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "communities",
+                    "{{community_id}}",
+                    "reports",
+                    "engagement"
+                  ]
+                }
+              },
+              "status": "Forbidden",
+              "code": 403,
+              "cookie": [],
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, private",
+                  "type": "text"
+                }
+              ],
+              "body": "{\n    \"message\": \"This action is unauthorized.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Issues Summary Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{server_url}}/api/communities/{{community_id}}/reports/issues-summary",
+              "host": [
+                "{{server_url}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{community_id}}",
+                "reports",
+                "issues-summary"
+              ]
+            },
+            "description": "Requires an authenticated community manager or super admin (managerOrSuperAdmin middleware). Read-only analytics endpoint; no query parameters. NOTE: served under /api/communities/{communityId}/reports (no v1 segment). Returns issue totals broken down by status, category and priority, plus the average resolution time in minutes (created_at to first resolved/closed status log entry)."
+          },
+          "response": [
+            {
+              "name": "Success - 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{server_url}}/api/communities/{{community_id}}/reports/issues-summary",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "communities",
+                    "{{community_id}}",
+                    "reports",
+                    "issues-summary"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "cookie": [],
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, private",
+                  "type": "text"
+                }
+              ],
+              "body": "{\n    \"total\": 42,\n    \"open\": 12,\n    \"assigned\": 8,\n    \"in_progress\": 6,\n    \"resolved\": 10,\n    \"closed\": 6,\n    \"by_category\": [\n        {\n            \"category_id\": 1,\n            \"category_name\": \"Maintenance\",\n            \"count\": 18\n        },\n        {\n            \"category_id\": 2,\n            \"category_name\": \"Sanitation\",\n            \"count\": 12\n        },\n        {\n            \"category_id\": 3,\n            \"category_name\": \"Security\",\n            \"count\": 12\n        }\n    ],\n    \"by_priority\": {\n        \"low\": 10,\n        \"medium\": 18,\n        \"high\": 10,\n        \"urgent\": 4\n    },\n    \"average_resolution_time_minutes\": 320.5\n}"
+            },
+            {
+              "name": "Unauthorized - 401",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{server_url}}/api/communities/{{community_id}}/reports/issues-summary",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "communities",
+                    "{{community_id}}",
+                    "reports",
+                    "issues-summary"
+                  ]
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "cookie": [],
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, private",
+                  "type": "text"
+                }
+              ],
+              "body": "{\n    \"message\": \"Unauthenticated.\"\n}"
+            },
+            {
+              "name": "Forbidden - 403",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{server_url}}/api/communities/{{community_id}}/reports/issues-summary",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "communities",
+                    "{{community_id}}",
+                    "reports",
+                    "issues-summary"
+                  ]
+                }
+              },
+              "status": "Forbidden",
+              "code": 403,
+              "cookie": [],
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, private",
+                  "type": "text"
+                }
+              ],
+              "body": "{\n    \"message\": \"This action is unauthorized.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Providers Performance Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{server_url}}/api/communities/{{community_id}}/reports/providers",
+              "host": [
+                "{{server_url}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{community_id}}",
+                "reports",
+                "providers"
+              ]
+            },
+            "description": "Requires an authenticated community manager or super admin (managerOrSuperAdmin middleware). Read-only analytics endpoint; no query parameters. NOTE: served under /api/communities/{communityId}/reports (no v1 segment). Returns per-provider performance for assigned issues: totals by status, average resolution time in minutes (assigned to resolved/closed status log entries) and completion rate percentage."
+          },
+          "response": [
+            {
+              "name": "Success - 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{server_url}}/api/communities/{{community_id}}/reports/providers",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "communities",
+                    "{{community_id}}",
+                    "reports",
+                    "providers"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "cookie": [],
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, private",
+                  "type": "text"
+                }
+              ],
+              "body": "[\n    {\n        \"provider_id\": 7,\n        \"provider_name\": \"Kamal Service Provider\",\n        \"total\": 14,\n        \"assigned\": 3,\n        \"in_progress\": 2,\n        \"resolved\": 6,\n        \"closed\": 3,\n        \"average_resolution_time_minutes\": 288.75,\n        \"completion_rate\": 64.29\n    },\n    {\n        \"provider_id\": 12,\n        \"provider_name\": \"Nour Electric Services\",\n        \"total\": 8,\n        \"assigned\": 1,\n        \"in_progress\": 1,\n        \"resolved\": 4,\n        \"closed\": 2,\n        \"average_resolution_time_minutes\": 410.5,\n        \"completion_rate\": 75\n    }\n]"
+            },
+            {
+              "name": "Unauthorized - 401",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{server_url}}/api/communities/{{community_id}}/reports/providers",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "communities",
+                    "{{community_id}}",
+                    "reports",
+                    "providers"
+                  ]
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "cookie": [],
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, private",
+                  "type": "text"
+                }
+              ],
+              "body": "{\n    \"message\": \"Unauthenticated.\"\n}"
+            },
+            {
+              "name": "Forbidden - 403",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{server_url}}/api/communities/{{community_id}}/reports/providers",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "communities",
+                    "{{community_id}}",
+                    "reports",
+                    "providers"
+                  ]
+                }
+              },
+              "status": "Forbidden",
+              "code": 403,
+              "cookie": [],
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, private",
+                  "type": "text"
+                }
+              ],
+              "body": "{\n    \"message\": \"This action is unauthorized.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Services Activity Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{server_url}}/api/communities/{{community_id}}/reports/services-activity",
+              "host": [
+                "{{server_url}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{community_id}}",
+                "reports",
+                "services-activity"
+              ]
+            },
+            "description": "Requires an authenticated community manager or super admin (managerOrSuperAdmin middleware). Read-only analytics endpoint; no query parameters. NOTE: served under /api/communities/{communityId}/reports (no v1 segment). Returns service listing counts by type and by status, plus closure statistics: listings past their expiry but still active (automatic_expired) versus listings closed before expiry (manually_closed)."
+          },
+          "response": [
+            {
+              "name": "Success - 200",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{server_url}}/api/communities/{{community_id}}/reports/services-activity",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "communities",
+                    "{{community_id}}",
+                    "reports",
+                    "services-activity"
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "cookie": [],
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, private",
+                  "type": "text"
+                }
+              ],
+              "body": "{\n    \"by_type\": {\n        \"sale\": 12,\n        \"rent\": 8,\n        \"share\": 5,\n        \"request\": 7\n    },\n    \"by_status\": {\n        \"active\": 21,\n        \"reserved\": 6,\n        \"closed\": 5\n    },\n    \"closure\": {\n        \"automatic_expired\": 6,\n        \"manually_closed\": 4\n    }\n}"
+            },
+            {
+              "name": "Unauthorized - 401",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{server_url}}/api/communities/{{community_id}}/reports/services-activity",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "communities",
+                    "{{community_id}}",
+                    "reports",
+                    "services-activity"
+                  ]
+                }
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "cookie": [],
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, private",
+                  "type": "text"
+                }
+              ],
+              "body": "{\n    \"message\": \"Unauthenticated.\"\n}"
+            },
+            {
+              "name": "Forbidden - 403",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{server_url}}/api/communities/{{community_id}}/reports/services-activity",
+                  "host": [
+                    "{{server_url}}"
+                  ],
+                  "path": [
+                    "api",
+                    "communities",
+                    "{{community_id}}",
+                    "reports",
+                    "services-activity"
+                  ]
+                }
+              },
+              "status": "Forbidden",
+              "code": 403,
+              "cookie": [],
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "Cache-Control",
+                  "value": "no-cache, private",
+                  "type": "text"
+                }
+              ],
+              "body": "{\n    \"message\": \"This action is unauthorized.\"\n}"
+            }
+          ]
+        }
+      ],
+      "description": "Manager/Super-Admin community analytics: engagement, issues summary, provider performance and services activity. All endpoints are read-only GETs scoped by community. NOTE: Reports routes resolve under /api/communities/{communityId}/reports/... (no v1 segment)."
     }
   ]
 }
