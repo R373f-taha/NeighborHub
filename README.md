@@ -689,24 +689,35 @@ NeighborHub was developed as a graduation project with the deliberate goal of go
 
 The codebase is structured so that each domain can be read, tested, and reasoned about independently, while still being a single deployable Laravel application. The intent is to demonstrate engineering judgment — choosing where to add rigor (locking, fail-closed authorization, set-based queries, safe serialization) and where to accept pragmatic technical debt — rather than to ship a finished commercial product.
 
-### Academic Supervision
+## Acknowledgments
 
-| Role | Name |
-| --- | --- |
-| Instructor | **Somar Kesen** |
-| Assistant Instructor | **Yousef Saleh** |
+💛💛🎉 **Special Thanks**
 
----
+**Focal X Agency**
+For their commitment to student growth and learning opportunities.
 
-## Team
+### Mentors
 
-Team attribution is not recorded in the repository. If you are a maintainer, add members here.
+**Mr. Somar Kesen**
 
-| Team Member | Responsibility |
-| --- | --- |
-| _to be added_ | _to be added_ |
+### Technical Guidance
 
----
+Concept clarification
+Inspirational mentorship
+**Mr. Yousef Saleh**
+
+### Focal X Team
+
+For building and supporting this educational journey.
+
+**CEO and Founder**
+Alaa Darwish
+
+### Development Team
+
+- Rahaf Taha
+- Rama Yousfan
+- Ali Younes
 
 ## Documentation
 
