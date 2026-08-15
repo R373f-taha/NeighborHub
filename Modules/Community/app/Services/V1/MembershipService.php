@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Community\app\Services\V1;
 
+use App\Notifications\ResidentApprovedNotification;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -97,9 +98,10 @@ class MembershipService
             throw new \RuntimeException('Only pending residents can be approved');
         }
 
-        return DB::transaction(function () use ($resident) {
+        return DB::transaction(function () use ($resident,$community) {
             $resident->update([
                 'status' => 'active',
+                'current_marker'=>'true',
                 'joined_at' => now(),
             ]);
 
@@ -110,6 +112,17 @@ class MembershipService
                 'new_status' => 'active',
                 'approved_by' => Auth::id(),
             ]);
+
+            $user = $resident->user;
+            if ($user) {
+                $user->notify(new ResidentApprovedNotification($community, $resident));
+
+                Log::info('📨 Approval notification sent to user', [
+                    'user_id' => $user->id,
+                    'user_email' => $user->email,
+                    'community_id' => $community->id,
+                ]);
+            }
 
             $this->clearCache($resident->community_id);
 
