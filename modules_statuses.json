@@ -9,6 +9,6 @@
     "Notification": true,
     "Media": true,
     "Interaction": true,
-    "Reports": true
-    
+    "Reports": true,
+    "NeighborHubPlus": true
 }

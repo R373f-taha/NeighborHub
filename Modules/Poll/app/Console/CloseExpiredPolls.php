@@ -88,7 +88,6 @@ class CloseExpiredPolls extends Command
                 return Command::SUCCESS;
             }
 
-            // ✅ إغلاق الاستطلاعات
             $this->info('🔒 Closing expired polls...');
             $closedCount = 0;
 
